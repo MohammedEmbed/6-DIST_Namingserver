@@ -1,4 +1,4 @@
-# Distributed Systems Project - Naming Server
+# Distributed Systems Project - Kaas & Wijn
 
 ## Overview
 This project implements a distributed system. The Naming Server serves as a directory service that maps logical names to system resources such as IP addresses or service endpoints. It allows clients and distributed components to locate services dynamically without hardcoding network addresses.
