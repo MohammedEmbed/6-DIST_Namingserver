@@ -1,4 +1,4 @@
-package kaasenwijn.namingserver;
+package kaasenwijn.namingserver.repository;
 
 import java.util.HashMap;
 import java.util.Map;
