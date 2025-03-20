@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.repository;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,8 +17,7 @@ public class IpRepository {
     private final HashMap<Integer, String> ipMap = new HashMap<>(); //[Integer, Ip Address] => node
     private static IpRepository single_instance = null;
 
-    @Value("${repository.filename}")
-    private String fileName;
+    private final String fileName = "database.json";
     private IpRepository()
     {
         this.readJson();
@@ -42,8 +42,12 @@ public class IpRepository {
     }
 
     private void readJson(){
-        // TODO: read json file into the hashset
-        try (FileReader reader = new FileReader(this.fileName)) {
+        File file = new File(this.fileName);
+        if (!file.exists()) {
+            System.out.println("File not found: ");
+            return;
+        }
+        try (FileReader reader = new FileReader(file)) {
             // Parse JSON
             JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
 
