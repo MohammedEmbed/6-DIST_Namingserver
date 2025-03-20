@@ -75,4 +75,8 @@ public class IpRepository {
     public static Set<Integer> getAllIds(){
         return getInstance().getMap().keySet();
     }
+
+    public void remove(Integer id){
+        this.ipMap.remove(id);
+    }
 }
