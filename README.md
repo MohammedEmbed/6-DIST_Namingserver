@@ -1,20 +1,27 @@
 # Distributed Systems Project - Kaas & Wijn
 
 ## Overview
-This project implements a distributed system. The Naming Server serves as a directory service that maps logical names to system resources such as IP addresses or service endpoints. It allows clients and distributed components to locate services dynamically without hardcoding network addresses.
+This project is a lightweight naming server designed to manage a distributed set of nodes by mapping service names to IP addresses. The system provides RESTful endpoints to register, lookup, and remove services dynamically.
 
 ## Features
-- **Centralized Name Resolution:** Maps logical names to system resources.
-- **Dynamic Registration:** Services can register and update their addresses.
-- **Lookup Services:** Clients can query the Naming Server to resolve service names.
-- **Fault Tolerance:** Ensures availability through replication or persistent storage.
-- **Concurrency Handling:** Supports multiple simultaneous clients.
+- Consistent Hashing for Node Management
+- Uses a bounded hash function (0 - 32,768) to ensure efficient lookups.
+- Dynamic Node Discovery
+- Nodes can register and be retrieved dynamically.
+- Persistent Storage with JSON
+- Stores registered nodes in a file-backed IP Repository for durability.
 
-## System Architecture
-The system follows a client-server model where:
-- **Naming Server** maintains a registry of service names and their network addresses.
-- **Services** dynamically register themselves with the Naming Server.
-- **Clients** query the Naming Server to obtain the addresses of required services.
+## Project Structure
+src/
+│── controller/
+│   ├── FileController.java   # TODO: File operations (placeholder)
+│   ├── NodeController.java   # REST API for managing nodes
+│── model/
+│   ├── Node.java             # Data model for registered nodes
+│── repository/
+│   ├── IpRepository.java     # Handles JSON storage of node IPs
+│── service/
+│   ├── NameService.java      # Hashing logic for node identification
 
 ## Components
 - **Naming Server:** A central directory that maintains a name-to-address mapping.
