@@ -1,14 +1,19 @@
 package kaasenwijn.namingserver.repository;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Value;
 
 public class IpRepository {
-    private final Map<Integer, String> ipMap = new HashMap<>(); //[Integer, Ip Address] => node
+    private final HashMap<Integer, String> ipMap = new HashMap<>(); //[Integer, Ip Address] => node
     private static IpRepository single_instance = null;
 
     @Value("${repository.filename}")
@@ -38,6 +43,17 @@ public class IpRepository {
 
     private void readJson(){
         // TODO: read json file into the hashset
+        try (FileReader reader = new FileReader(this.fileName)) {
+            // Parse JSON
+            JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
+
+            for (String key : jsonObject.keySet()) {
+                this.ipMap.put(Integer.parseInt(key),jsonObject.getString(key));
+            }
+            System.out.println("Parsed JSON to HashSet");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void writeJson() {
@@ -51,5 +67,12 @@ public class IpRepository {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public HashMap<Integer, String> getMap(){
+        return this.ipMap;
+    }
+    public static Set<Integer> getAllIds(){
+        return getInstance().getMap().keySet();
     }
 }
