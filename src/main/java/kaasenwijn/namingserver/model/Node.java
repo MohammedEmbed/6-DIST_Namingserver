@@ -1,12 +1,12 @@
 package kaasenwijn.namingserver.model;
 
 public class Node {
-    public String ip;
     public String name;
+    public String ip;
 
-    public Node(String ip, String name) {
-        this.ip = ip;
+    public Node(String name, String ip) {
         this.name = name;
+        this.ip = ip;
     }
 }
 
