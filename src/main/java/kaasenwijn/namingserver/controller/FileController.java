@@ -14,9 +14,12 @@ public class FileController {
     @Autowired
     private NameService nameService;
 
+    private final IpRepository ipRepo = IpRepository.getInstance();
+
     //TODO:  add file functions...
     @GetMapping("/{filePath}")
-    public synchronized Integer getFileLocation(@PathVariable String filePath) {
-        return nameService.getFileLocation(filePath);
+    public synchronized String getFileLocation(@PathVariable String filePath) {
+        Integer id = nameService.getNodeId(filePath);
+        return ipRepo.getIp(id);
     }
 }

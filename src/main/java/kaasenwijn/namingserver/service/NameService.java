@@ -27,7 +27,7 @@ public class NameService {
         //  return (Integer) ((name.hashCode()  + Integer.MAX_VALUE) * (32768/(Integer.MAX_VALUE +abs(Integer.MIN_VALUE))));
     }
 
-    public Integer getFileLocation(String filename){
+    public Integer getNodeId(String filename){
         Integer fileId = getHash(filename);
         boolean isEmpty=true;
         Integer owner = 0;
