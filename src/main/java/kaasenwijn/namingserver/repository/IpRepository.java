@@ -23,7 +23,7 @@ public class IpRepository {
         this.readJson();
     }
 
-    private static synchronized IpRepository getInstance()
+    public static synchronized IpRepository getInstance()
     {
         if (single_instance == null)
             single_instance = new IpRepository();
