@@ -25,19 +25,19 @@ public class NameService {
 
     public Integer getFileLocation(String filename){
         Integer fileId = getHash(filename);
-        Set<Integer> nodes = new HashSet<>();
+        boolean isEmpty=true;
         Integer owner = 0;
         Integer largest = 0;
         for(Integer nodeId : IpRepository.getAllIds()){
-            if(nodeId < fileId) {
-                nodes.add(nodeId);
-                if (nodeId > owner) {
-                    largest = nodeId;
-                    owner = nodeId;
-                }
+            if(nodeId > largest){
+                largest = nodeId;
+            }
+            if(nodeId < fileId && nodeId > owner){
+                owner = nodeId;
+                isEmpty=false;
             }
         }
-        return nodes.isEmpty() ? largest : owner;
+        return isEmpty ? largest : owner;
     }
 
 
