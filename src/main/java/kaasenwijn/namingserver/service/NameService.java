@@ -4,6 +4,7 @@ import kaasenwijn.namingserver.repository.IpRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 import static java.lang.Math.abs;
@@ -24,18 +25,19 @@ public class NameService {
 
     public Integer getFileLocation(String filename){
         Integer fileId = getHash(filename);
-        Set<Integer> nodes = IpRepository.getAllIds();
-        int owner = 0;
-        for(Integer nodeId : nodes){
-            if(nodeId > fileId){
-                nodes.remove(nodeId);
-                continue;
-            }
-            if(nodeId > owner){
-                owner = nodeId;
+        Set<Integer> nodes = new HashSet<>();
+        Integer owner = 0;
+        Integer largest = 0;
+        for(Integer nodeId : IpRepository.getAllIds()){
+            if(nodeId < fileId) {
+                nodes.add(nodeId);
+                if (nodeId > owner) {
+                    largest = nodeId;
+                    owner = nodeId;
+                }
             }
         }
-        return owner;
+        return nodes.isEmpty() ? largest : owner;
     }
 
 
