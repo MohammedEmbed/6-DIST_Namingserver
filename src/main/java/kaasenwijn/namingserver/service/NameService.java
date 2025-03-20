@@ -19,7 +19,7 @@ public class NameService {
      * @return hash of the name as an integer value between 0 and 32 768
      */
     public Integer getHash(String name){
-        return (name.hashCode() + Integer.MAX_VALUE) * (32768/Integer.MAX_VALUE +abs(Integer.MIN_VALUE));
+        return (Integer) ((name.hashCode() + Integer.MAX_VALUE) * (32768/Integer.MAX_VALUE +abs(Integer.MIN_VALUE)));
     }
 
     public Integer getFileLocation(String filename){
