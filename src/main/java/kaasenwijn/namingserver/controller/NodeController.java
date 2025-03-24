@@ -4,6 +4,7 @@ import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.service.NameService;
 import kaasenwijn.namingserver.repository.IpRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -15,9 +16,14 @@ public class NodeController {
     private final IpRepository ipRepo = IpRepository.getInstance();
 
     @PostMapping
-    public void Update(@RequestBody Node n) {
+    public ResponseEntity.BodyBuilder Create(@RequestBody Node n) {
         Integer hash = nameService.getHash(n.name);
-        ipRepo.setIp(hash, n.ip);
+        if(!ipRepo.ipExists(hash)){
+            ipRepo.setIp(hash, n.ip);
+        } else{
+            return ResponseEntity.badRequest();
+        }
+        return ResponseEntity.ok();
     }
 
     @GetMapping("/{name}")
