@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.controller;
 
+import kaasenwijn.namingserver.model.ErrorDto;
 import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.service.NameService;
 import kaasenwijn.namingserver.repository.IpRepository;
@@ -16,14 +17,14 @@ public class NodeController {
     private final IpRepository ipRepo = IpRepository.getInstance();
 
     @PostMapping
-    public ResponseEntity.BodyBuilder Create(@RequestBody Node n) {
+    public ResponseEntity<?> Create(@RequestBody Node n) {
         Integer hash = nameService.getHash(n.name);
         if(!ipRepo.ipExists(hash)){
             ipRepo.setIp(hash, n.ip);
         } else{
-            return ResponseEntity.badRequest();
+            return ResponseEntity.badRequest().body(new ErrorDto("Node already exists"));
         }
-        return ResponseEntity.ok();
+        return ResponseEntity.ok().body(null);
     }
 
     @GetMapping("/{name}")
