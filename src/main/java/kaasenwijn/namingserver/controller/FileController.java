@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.controller;
 
+import kaasenwijn.namingserver.model.IpDto;
 import kaasenwijn.namingserver.repository.IpRepository;
 import kaasenwijn.namingserver.service.NameService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,8 @@ public class FileController {
 
     //TODO:  add file functions...
     @GetMapping("/{filePath}")
-    public synchronized String getFileLocation(@PathVariable String filePath) {
+    public synchronized IpDto getFileLocation(@PathVariable String filePath) {
         Integer id = nameService.getNodeId(filePath);
-        return ipRepo.getIp(id);
+        return new IpDto(ipRepo.getIp(id));
     }
 }

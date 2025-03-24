@@ -20,11 +20,9 @@ public class NameService {
      * @return hash of the name as an integer value between 0 and 32 768
      */
     public Integer getHash(String name){
-        System.out.println(name.hashCode());
         float fac = (float) 32768 /((long) 2*Integer.MAX_VALUE);
         float result = (name.hashCode()  + (long) Integer.MAX_VALUE) * fac;
         return (int) Math.floor(result);
-        //  return (Integer) ((name.hashCode()  + Integer.MAX_VALUE) * (32768/(Integer.MAX_VALUE +abs(Integer.MIN_VALUE))));
     }
 
     public Integer getNodeId(String filename){
