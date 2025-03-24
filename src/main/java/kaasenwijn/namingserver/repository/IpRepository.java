@@ -67,7 +67,6 @@ public class IpRepository {
     }
 
     private void writeJson() {
-        // TODO: write hashmap to json
         JSONObject jsonObject = new JSONObject(ipMap);
         String orgJsonData = jsonObject.toString();
         // Write JSON to file
