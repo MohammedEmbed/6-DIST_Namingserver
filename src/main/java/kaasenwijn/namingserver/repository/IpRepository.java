@@ -36,9 +36,15 @@ public class IpRepository {
 
     }
 
+    public boolean ipExists(int id) {
+        return this.ipMap.containsKey(id);
+    }
+
     public void setIp(Integer id, String ip) {
-        this.ipMap.put(id,ip);
-        this.writeJson();
+        if (!ipExists(id)){
+            this.ipMap.put(id,ip);
+            this.writeJson();
+        }
     }
 
     private void readJson(){
