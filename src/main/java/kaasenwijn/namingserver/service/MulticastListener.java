@@ -1,8 +1,6 @@
 package kaasenwijn.namingserver.service;
 
-import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.repository.IpRepository;
-import kaasenwijn.namingserver.service.NameService;
 import org.json.JSONObject;
 
 import java.net.DatagramPacket;
