@@ -49,21 +49,24 @@ public class NameServerMulticastListener extends Thread {
                 ipRepo.setIp(nodeId, ip);
                 System.out.println("Added node from multicast: " + name + " (" + ip + ") → ID: " + nodeId);
 
-                // Respond to the node with the total number of nodes
-                int totalNodeCount = ipRepo.getMap().size();
-
-                try (Socket responseSocket = new Socket(ip, 8081)) { // node must listen here
-                    OutputStream out = responseSocket.getOutputStream();
-                    String response = "{\"nodes\":" + totalNodeCount + "}";
-                    out.write(response.getBytes());
-                    out.flush();
-                    System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
-                } catch (Exception e) {
-                    System.err.println("Unable to respond to new node at: " + ip);
-                }
+                // Send back via unicast
+                sendNodeCountResponse(ip);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    // send the node count back to the node
+    private void sendNodeCountResponse(String ip) {
+        int totalNodeCount = ipRepo.getMap().size();
+        try (Socket responseSocket = new Socket(ip, 8081)) {
+            OutputStream out = responseSocket.getOutputStream();
+            String response = "{\"type\":\"welcome\", \"nodes\":" + totalNodeCount + "}";
+            out.write(response.getBytes());
+            out.flush();
+            System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
+        } catch (Exception e) {
+            System.err.println("Failed to send node count to: " + ip);
         }
     }
 }
