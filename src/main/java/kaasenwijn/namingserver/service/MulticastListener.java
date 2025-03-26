@@ -24,35 +24,32 @@ public class MulticastListener extends Thread {
         try (MulticastSocket socket = new MulticastSocket(PORT)) {
             InetAddress group = InetAddress.getByName(multicastAddress);
 
-            // Join the multicast group
-            socket.joinGroup(group);
-
-            // Optionally set the time-to-live for multicast packets
-            socket.setTimeToLive(64);
+            socket.joinGroup(group); // Join the multicast group
+            socket.setTimeToLive(64); // Optionally set the time-to-live for multicast packets
 
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
             while (true) {
-                // Receive packet from multicast group
-                socket.receive(packet);
+                socket.receive(packet); // Wait for multicast message
+
                 String messageReceived = new String(packet.getData(), 0, packet.getLength());
                 System.out.println("Multicast received: " + messageReceived);
                 packet.setLength(buf.length); // Reset the length of the packet before the next packet is received
 
                 // Process the message
                 JSONObject obj = new JSONObject(messageReceived);
-                // Extract node name and IP
+
+                // Extract name & IP, compute hash
                 String name = obj.getString("name");
                 String ip = obj.getString("ip");
-
-                // Compute hash ID for the node and store it in the IP map
                 int nodeId = nameService.getHash(name);
+
+                // Store (hash, IP) in naming server map
                 ipRepo.setIp(nodeId, ip);
+                System.out.println("Added node from multicast: " + name + " (" + ip + ") → ID: " + nodeId);
 
-                System.out.println("Added node from multicast: " + name + " (" + ip + ")");
-
-                // Send response back to node with total count
+                // Respond to the node with the total number of nodes
                 int totalNodeCount = ipRepo.getMap().size();
 
                 try (Socket responseSocket = new Socket(ip, 8081)) { // node must listen here
@@ -65,7 +62,6 @@ public class MulticastListener extends Thread {
                     System.err.println("Unable to respond to new node at: " + ip);
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
