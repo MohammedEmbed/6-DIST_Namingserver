@@ -5,13 +5,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.springframework.beans.factory.annotation.Value;
 
 public class IpRepository {
     private final HashMap<Integer, String> ipMap = new HashMap<>(); //[Integer, Ip Address] => node

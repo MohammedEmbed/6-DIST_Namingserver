@@ -5,6 +5,8 @@ import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.service.NameService;
 import kaasenwijn.namingserver.repository.IpRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,15 +30,22 @@ public class NodeController {
     }
 
     @GetMapping("/{name}")
-    public Node GetNode(@PathVariable String name) {
+    public ResponseEntity<?> GetNode(@PathVariable String name) {
         Integer hash = nameService.getHash(name);
-        return new Node(name,ipRepo.getIp(hash));
+        if(!ipRepo.ipExists(hash)){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        return ResponseEntity.ok().body(new Node(name,ipRepo.getIp(hash)));
     }
 
     @DeleteMapping("/{name}")
-    public void Delete(@PathVariable String name) {
+    public ResponseEntity<?> Delete(@PathVariable String name) {
         Integer hash = nameService.getHash(name);
+        if(!ipRepo.ipExists(hash)){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
         ipRepo.remove(hash);
+        return ResponseEntity.ok().body(null);
     }
 
 }

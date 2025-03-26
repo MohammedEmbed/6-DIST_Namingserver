@@ -20,8 +20,9 @@ public class NameService {
      * @return hash of the name as an integer value between 0 and 32 768
      */
     public Integer getHash(String name){
-        float fac = (float) 32768 /((long) 2*Integer.MAX_VALUE);
-        float result = (name.hashCode()  + (long) Integer.MAX_VALUE) * fac;
+        double fac = (double) 32768 /((long) 2*Integer.MAX_VALUE);
+        long med = (name.hashCode()  + (long) Integer.MAX_VALUE);
+        double result = med * fac;
         return (int) Math.floor(result);
     }
 
