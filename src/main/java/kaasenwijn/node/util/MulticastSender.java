@@ -1,4 +1,4 @@
-package kaasenwijn.namingserver.util;
+package kaasenwijn.node.util;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
