@@ -9,13 +9,13 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
 
-public class MulticastListener extends Thread {
+public class NameServerMulticastListener extends Thread {
     String multicastAddress = "230.0.0.0";
     private static final int PORT = 4446;
     private final NameService nameService;
     private final IpRepository ipRepo;
 
-    public MulticastListener(NameService nameService) {
+    public NameServerMulticastListener(NameService nameService) {
         this.nameService = nameService;
         this.ipRepo = IpRepository.getInstance();
     }
