@@ -6,7 +6,7 @@ import java.net.InetAddress;
 
 public class MulticastSender {
     private static final String MULTICAST_ADDRESS = "230.0.0.0"; // multicast group address
-    private static final int PORT = 4446; // create the packet
+    private static final int PORT = 4446; // port on which to send
 
     public static void sendMulticastMessage(String message) {
         try (DatagramSocket socket = new DatagramSocket()) { // creates a UDP socket

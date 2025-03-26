@@ -33,37 +33,36 @@ public class MulticastListener extends Thread {
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
-            while (!Thread.currentThread().isInterrupted()) {
+            while (true) {
                 // Receive packet from multicast group
                 socket.receive(packet);
                 String messageReceived = new String(packet.getData(), 0, packet.getLength());
                 System.out.println("Multicast received: " + messageReceived);
+                packet.setLength(buf.length); // Reset the length of the packet before the next packet is received
 
-                // Process the message to see if it's a bootstrap
+                // Process the message
                 JSONObject obj = new JSONObject(messageReceived);
-                if ("bootstrap".equals(obj.getString("type"))) {
-                    // Extract node name and IP
-                    String name = obj.getString("name");
-                    String ip = obj.getString("ip");
+                // Extract node name and IP
+                String name = obj.getString("name");
+                String ip = obj.getString("ip");
 
-                    // Compute hash ID for the node and store it in the IP map
-                    int nodeId = nameService.getHash(name);
-                    ipRepo.setIp(nodeId, ip);
+                // Compute hash ID for the node and store it in the IP map
+                int nodeId = nameService.getHash(name);
+                ipRepo.setIp(nodeId, ip);
 
-                    System.out.println("Added node from multicast: " + name + " (" + ip + ")");
+                System.out.println("Added node from multicast: " + name + " (" + ip + ")");
 
-                    // Send response back to node with total count
-                    int totalNodeCount = ipRepo.getMap().size();
+                // Send response back to node with total count
+                int totalNodeCount = ipRepo.getMap().size();
 
-                    try (Socket responseSocket = new Socket(ip, 8081)) { // node must listen here
-                        OutputStream out = responseSocket.getOutputStream();
-                        String response = "{\"type\":\"welcome\", \"nodes\":" + totalNodeCount + "}";
-                        out.write(response.getBytes());
-                        out.flush();
-                        System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
-                    } catch (Exception e) {
-                        System.err.println("Unable to respond to new node at: " + ip);
-                    }
+                try (Socket responseSocket = new Socket(ip, 8081)) { // node must listen here
+                    OutputStream out = responseSocket.getOutputStream();
+                    String response = "{\"nodes\":" + totalNodeCount + "}";
+                    out.write(response.getBytes());
+                    out.flush();
+                    System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
+                } catch (Exception e) {
+                    System.err.println("Unable to respond to new node at: " + ip);
                 }
             }
 
