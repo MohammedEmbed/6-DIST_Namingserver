@@ -2,11 +2,11 @@ package kaasenwijn.node.model;
 
 public class NodeStructure {
 
-    private int selfId;
+    private int currentId;
     private String selfIp;
 
-    private int previousId;
-    private int nextId;
+    private Neighbor previousId;
+    private Neighbor nextId;
 
 
 }
