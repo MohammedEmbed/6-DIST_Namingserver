@@ -6,8 +6,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class NodeService {
 
+    public static void startUp(String ip,String name){
+        Integer id = getHash(name);
+        NodeRepository repo = NodeRepository.getInstance();
+        repo.setCurrentId(id);
+        repo.setSelfIp(ip);
+    }
     //The same hash function as the Namingserver:
-    public Integer getHash(String name){
+    public static Integer getHash(String name){
         double fac = (double) 32768 /((long) 2*Integer.MAX_VALUE);
         long med = (name.hashCode()  + (long) Integer.MAX_VALUE);
         double result = med * fac;

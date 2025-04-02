@@ -6,8 +6,8 @@ ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 
 # Step 3: Copy Maven files and build the application
-COPY ./namenode/pom.xml $APP_HOME/
-COPY ./namenode/src $APP_HOME/src
+COPY ./nameserver/pom.xml $APP_HOME/
+COPY ./nameserver/src $APP_HOME/src
 
 # Step 4: Build the application using Maven
 RUN apt-get update && \
