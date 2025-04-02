@@ -1,15 +1,12 @@
-package kaasenwijn.node.repository;
+package kaasenwijn.namenode.repository;
 
-import kaasenwijn.node.model.Neighbor;
+import kaasenwijn.namenode.model.NodeStructure;
+import kaasenwijn.namenode.model.Neighbor;
 
 public class NodeRepository {
 
     private static NodeRepository instance = null;
-    private int currentId;
-    private String selfIp;
-
-    private int previousId;
-    private int nextId;
+    private NodeStructure nodeStructure;
 
     private NodeRepository(){
 
@@ -24,34 +21,34 @@ public class NodeRepository {
     }
 
     public int getCurrentId() {
-        return currentId;
+        return nodeStructure.currentId;
     }
 
     public void setCurrentId(int currentId) {
-        this.currentId = currentId;
+        this.nodeStructure.currentId = currentId;
     }
 
     public String getSelfIp() {
-        return selfIp;
+        return nodeStructure.selfIp;
     }
 
     public void setSelfIp(String selfIp) {
-        this.selfIp = selfIp;
+        this.nodeStructure.selfIp = selfIp;
     }
 
     public int getPreviousId() {
-        return previousId;
+        return nodeStructure.previousId.Id;
     }
 
     public void setPreviousId(int previousId) {
-        this.previousId = previousId;
+        nodeStructure.previousId = new Neighbor(previousId, "127.0.0.1");
     }
 
     public int getNextId() {
-        return nextId;
+        return nodeStructure.nextId.Id;
     }
 
     public void setNextId(int nextId) {
-        this.nextId = nextId;
+        nodeStructure.nextId = new Neighbor(nextId, "127.0.0.1");
     }
 }

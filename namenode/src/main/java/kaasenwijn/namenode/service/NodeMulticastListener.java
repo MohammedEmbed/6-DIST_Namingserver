@@ -1,4 +1,4 @@
-package kaasenwijn.node.service;
+package kaasenwijn.namenode.service;
 
 public class NodeMulticastListener {
 }

@@ -1,4 +1,4 @@
-package kaasenwijn.node.controller;
+package kaasenwijn.namenode.controller;
 
 public class Contoller {
 

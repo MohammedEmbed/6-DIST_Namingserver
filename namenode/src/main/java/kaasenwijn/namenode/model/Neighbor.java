@@ -1,4 +1,4 @@
-package kaasenwijn.node.model;
+package kaasenwijn.namenode.model;
 
 
 public class Neighbor {
@@ -11,6 +11,6 @@ public class Neighbor {
      */
     public Neighbor(Integer Id, String Ip) {
         this.Id = Id;
-        this.Ip = Ip;
+        this.Ip = Ip; // TODO: is this IP needed?
     }
 }

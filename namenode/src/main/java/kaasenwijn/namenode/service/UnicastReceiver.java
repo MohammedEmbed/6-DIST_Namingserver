@@ -1,6 +1,5 @@
-package kaasenwijn.node.service;
+package kaasenwijn.namenode.service;
 
-import kaasenwijn.namingserver.service.NameService;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -13,10 +12,10 @@ public class UnicastReceiver extends Thread{
     private final int currentID;
     private int previousID;
     private int nextID;
-    NameService nameService;
+    NodeService nodeService;
 
     public UnicastReceiver(String nodeName) {
-        this.currentID = nameService.getHash(nodeName);
+        this.currentID = nodeService.getHash(nodeName);
     }
 
     @Override

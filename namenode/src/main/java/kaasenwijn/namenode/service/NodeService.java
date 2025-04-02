@@ -1,6 +1,6 @@
-package kaasenwijn.node.service;
+package kaasenwijn.namenode.service;
 
-import kaasenwijn.node.repository.NodeRepository;
+import kaasenwijn.namenode.repository.NodeRepository;
 import org.springframework.stereotype.Service;
 
 @Service

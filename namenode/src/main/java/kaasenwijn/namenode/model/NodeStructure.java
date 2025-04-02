@@ -1,12 +1,13 @@
-package kaasenwijn.node.model;
+package kaasenwijn.namenode.model;
+import kaasenwijn.namenode.model.Neighbor;
 
 public class NodeStructure {
 
-    private int currentId;
-    private String selfIp;
+    public int currentId;
+    public String selfIp;
 
-    private Neighbor previousId;
-    private Neighbor nextId;
+    public Neighbor previousId;
+    public Neighbor nextId;
 
 
 }
