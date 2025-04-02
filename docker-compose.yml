@@ -3,6 +3,8 @@ services:
     build:
       context: ./nameserver
       dockerfile: Dockerfile.server
+    environment:
+      - CONTAINER_NAME=nameserver
     container_name: nameserver
     networks:
       y-network:
@@ -13,6 +15,8 @@ services:
     build:
       context: ./namenode
       dockerfile: Dockerfile.node
+    environment:
+      - CONTAINER_NAME=node1
     container_name: node1
     networks:
       y-network:
@@ -22,6 +26,8 @@ services:
       context: ./namenode
       dockerfile: Dockerfile.node
     container_name: node2
+    environment:
+      - CONTAINER_NAME=node2
     networks:
       y-network:
         ipv4_address: 192.168.0.5
