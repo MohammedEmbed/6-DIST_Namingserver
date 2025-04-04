@@ -85,4 +85,18 @@ public class IpRepository {
     public void remove(Integer id){
         this.ipMap.remove(id);
     }
+
+    public static void printRegisteredNodes() {
+        IpRepository repo = IpRepository.getInstance();
+
+        System.out.println("==== Registered Nodes ====");
+        if (repo.getMap().isEmpty()) {
+            System.out.println("No nodes registered.");
+        } else {
+            repo.getMap().forEach((name, ip) -> {
+                System.out.println("Node: " + name + " | IP: " + ip);
+            });
+        }
+        System.out.println("==========================");
+    }
 }
