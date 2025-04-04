@@ -81,33 +81,7 @@ public class NodeService {
             String filename = file.getName();
             int fileHash = getHash(filename); //Bereken hun hashes
 
-            try {
-                //Probeer via Post request stap 2:  local node has to report that to the
-                //naming server to voldoen. Deze code is wel regelrecht gepikt van stackoverflow. Best eens testen
 
-                URL url = new URL("http://127.0.0.1:8080/api/file/report"); //TODO: Change --> Momenteel localhost voor NamingServer
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-
-                String json = String.format("{\"filename\":\"%s\", \"hash\":%d, \"ip\":\"%s\"}",
-                        filename, fileHash, selfIp);
-
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(json.getBytes());
-                    os.flush();
-                }
-
-                if (conn.getResponseCode() == 200) {
-                    System.out.println("Reported file: " + filename);
-                } else {
-                    System.err.println("Failed to report file: " + filename);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
