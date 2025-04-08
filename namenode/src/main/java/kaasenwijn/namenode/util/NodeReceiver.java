@@ -5,24 +5,16 @@ import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 
 import java.io.*;
-<<<<<<< HEAD
 import java.net.ServerSocket;
-=======
-        import java.net.ServerSocket;
->>>>>>> origin/Lab5
 import java.net.Socket;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class NodeReceiver extends Thread {
 
-<<<<<<< HEAD
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
     private static final int UNICAST_RECEIVE_PORT = 8081; // Node unicast listener port
 
-
-=======
->>>>>>> origin/Lab5
     private final int currentID;
     private final String selfIp;
 
@@ -33,13 +25,8 @@ public class NodeReceiver extends Thread {
 
     @Override
     public void run() {
-<<<<<<< HEAD
         try (ServerSocket serverSocket = new ServerSocket(UNICAST_RECEIVE_PORT)) {
             System.out.println("UnicastReceiver started on port 8081...");
-=======
-        try (ServerSocket serverSocket = new ServerSocket(8081)) {
-            System.out.println("📡 UnicastReceiver started on port 8081...");
->>>>>>> origin/Lab5
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -61,11 +48,7 @@ public class NodeReceiver extends Thread {
                     System.out.println("Welcome from naming server. Nodes in system: " + nodeCount);
 
                     // Reply with local file report
-<<<<<<< HEAD
                     sendFileReportViaTCP("<NAMING_SERVER_IP>", UNICAST_SENDER_PORT); // TODO: Replace with actual IP
-=======
-                    sendFileReportViaTCP("<NAMING_SERVER_IP>", 9090); // TODO: Replace with actual IP
->>>>>>> origin/Lab5
                 }
 
                 else if (message.contains("replication_request")) {
