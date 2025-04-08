@@ -21,7 +21,7 @@ public class NamingserverApplication {
 
         NameService nameService = new NameService(); // or get it from Spring
         NameServerMulticastListener listener = new NameServerMulticastListener(nameService);
-        listener.start();
+        listener.run();
 
         // Print node info
         IpRepository.printRegisteredNodes();
