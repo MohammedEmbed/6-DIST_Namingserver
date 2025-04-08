@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
 
-public class NameServerMulticastListener extends Thread {
+public class NameServerListener extends Thread {
     private static final String MULTICAST_ADDRESS = "230.0.0.0";
     private static final int MULTICAST_PORT = 4446;
 
@@ -19,7 +19,7 @@ public class NameServerMulticastListener extends Thread {
     private final NameService nameService;
     private final IpRepository ipRepo;
 
-    public NameServerMulticastListener(NameService nameService) {
+    public NameServerListener(NameService nameService) {
         this.nameService = nameService;
         this.ipRepo = IpRepository.getInstance();
     }

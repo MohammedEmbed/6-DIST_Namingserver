@@ -1,7 +1,7 @@
 package kaasenwijn.namingserver;
 
 import kaasenwijn.namingserver.repository.IpRepository;
-import kaasenwijn.namingserver.service.NameServerMulticastListener;
+import kaasenwijn.namingserver.service.NameServerListener;
 import kaasenwijn.namingserver.service.NameService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +20,7 @@ public class NamingserverApplication {
         SpringApplication.run(NamingserverApplication.class, args);
 
         NameService nameService = new NameService(); // or get it from Spring
-        NameServerMulticastListener listener = new NameServerMulticastListener(nameService);
+        NameServerListener listener = new NameServerListener(nameService);
         listener.run();
 
         // Print node info
