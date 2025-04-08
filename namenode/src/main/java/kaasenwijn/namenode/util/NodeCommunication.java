@@ -1,6 +1,6 @@
 package kaasenwijn.namenode.util;
 
-import static kaasenwijn.namenode.util.MulticastSender.sendMulticastMessage;
+import static kaasenwijn.namenode.util.NodeSender.sendMulticastMessage;
 
 public class NodeCommunication {
 

@@ -5,7 +5,7 @@ import java.net.*;
 
 import org.json.JSONObject;
 
-public class MulticastSender {
+public class NodeSender {
     private static final String MULTICAST_ADDRESS = "230.0.0.0"; // multicast group address
     private static final int PORT = 4446; // port on which to send
 
