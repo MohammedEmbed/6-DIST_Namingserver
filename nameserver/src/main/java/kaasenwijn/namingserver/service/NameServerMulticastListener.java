@@ -10,7 +10,7 @@ import java.net.MulticastSocket;
 import java.net.Socket;
 
 public class NameServerMulticastListener extends Thread {
-    String multicastAddress = "230.0.0.0";
+    private static final String multicastAddress = "230.0.0.0";
     private static final int PORT = 4446;
     private final NameService nameService;
     private final IpRepository ipRepo;
@@ -39,10 +39,12 @@ public class NameServerMulticastListener extends Thread {
 
                 // Process the message
                 JSONObject obj = new JSONObject(messageReceived);
-
+                System.out.println(messageReceived);
+                System.out.println(obj);
                 // Extract name & IP, compute hash
                 String name = obj.getString("name");
                 String ip = obj.getString("ip");
+                int port = obj.getInt("port");
                 int nodeId = nameService.getHash(name);
 
                 // Store (hash, IP) in naming server map
@@ -50,23 +52,24 @@ public class NameServerMulticastListener extends Thread {
                 System.out.println("Added node from multicast: " + name + " (" + ip + ") → ID: " + nodeId);
 
                 // Send back via unicast
-                sendNodeCountResponse(ip);
+                sendNodeCountResponse(ip,port);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     // send the node count back to the node
-    private void sendNodeCountResponse(String ip) {
+    private void sendNodeCountResponse(String ip, int port) {
         int totalNodeCount = ipRepo.getMap().size();
-        try (Socket responseSocket = new Socket(ip, 8081)) {
+        try (Socket responseSocket = new Socket(ip, port)) {
             OutputStream out = responseSocket.getOutputStream();
             String response = "{\"type\":\"welcome\", \"nodes\":" + totalNodeCount + "}";
             out.write(response.getBytes());
             out.flush();
             System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
         } catch (Exception e) {
-            System.err.println("Failed to send node count to: " + ip);
+            System.err.println("Failed to send node count to: " + ip + " and port: "+port);
+            System.err.println(e);
         }
     }
 }

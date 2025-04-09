@@ -10,13 +10,16 @@ public class MulticastSender {
     private static final String MULTICAST_ADDRESS = "230.0.0.0"; // multicast group address
     private static final int PORT = 4446; // port on which to send
 
-    public static void sendMulticastMessage(String name, String ip) {
+    public static void sendMulticastMessage(String name, String ip, int port) {
+        System.out.println("Printed something "+name);
         try (DatagramSocket socket = new DatagramSocket()) { // creates a UDP socket
             // Create JSON message with name and ip
+            socket.setBroadcast(true);
             JSONObject messageObj = new JSONObject();
             messageObj.put("type", "bootstrap");
             messageObj.put("name", name);
             messageObj.put("ip", ip);
+            messageObj.put("port",port);
             byte[] buf = messageObj.toString().getBytes(); // the message we want to send turned into bytes
 
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);

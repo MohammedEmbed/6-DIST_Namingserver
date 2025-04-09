@@ -1,4 +1,62 @@
 package kaasenwijn.namenode.service;
 
-public class NodeMulticastListener {
+import org.json.JSONObject;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.Socket;
+
+public class NodeMulticastListener extends Thread{
+    private static final String multicastAddress = "230.0.0.0";
+    private static final int PORT = 4446;
+
+    public void run() {
+        try (MulticastSocket socket = new MulticastSocket(PORT)) {
+            InetAddress group = InetAddress.getByName(multicastAddress);
+
+            socket.joinGroup(group); // Join the multicast group
+            socket.setTimeToLive(64); // Optionally set the time-to-live for multicast packets
+
+            byte[] buf = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+            System.out.println("Started listening on mutlticast: "+multicastAddress+":"+PORT);
+            while (true) {
+                socket.receive(packet); // Wait for multicast message
+
+                String messageReceived = new String(packet.getData(), 0, packet.getLength());
+                packet.setLength(buf.length); // Reset the length of the packet before the next packet is received
+
+                // Process the message
+                JSONObject obj = new JSONObject(messageReceived);
+                System.out.println(messageReceived);
+                System.out.println(obj);
+                // Extract name & IP, Port
+                String name = obj.getString("name");
+                String ip = obj.getString("ip");
+                int port = obj.getInt("port");
+                System.out.println("Multicast received from multicast: " + name + " - " + ip+":"+port);
+
+                // Send back via unicast
+                sendNodeResponse(ip,port);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    // send the node count back to the node
+    // TODO: make this useful, now it's for testing purpose
+    private void sendNodeResponse(String ip, int port) {
+        int totalNodeCount = 69;
+        try (Socket responseSocket = new Socket(ip, port)) {
+            OutputStream out = responseSocket.getOutputStream();
+            String response = "{\"type\":\"welcome\", \"nodes\":" + totalNodeCount + "}";
+            out.write(response.getBytes());
+            out.flush();
+            System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
+        } catch (Exception e) {
+            System.err.println("Failed to send node count to: " + ip + " and port: "+port);
+            System.err.println(e);
+        }
+    }
 }

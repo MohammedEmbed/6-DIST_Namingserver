@@ -4,7 +4,7 @@ import static kaasenwijn.namenode.util.MulticastSender.sendMulticastMessage;
 
 public class NodeCommunication {
 
-    public void MulticastDiscovery(Integer selfId, String selfIp) {
-        sendMulticastMessage(String.valueOf(selfId), selfIp);
+    public void MulticastDiscovery(Integer selfId, String selfIp, int port) {
+        sendMulticastMessage(String.valueOf(selfId), selfIp, port);
     }
 }
