@@ -1,6 +1,7 @@
 package kaasenwijn.namingserver.service;
 
 import kaasenwijn.namingserver.repository.IpRepository;
+import kaasenwijn.namingserver.repository.NodeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class NameService {
      * @param name the string value to hash
      * @return hash of the name as an integer value between 0 and 32 768
      */
-    public Integer getHash(String name){
+    public static Integer getHash(String name){
         double fac = (double) 32768 /((long) 2*Integer.MAX_VALUE);
         long med = (name.hashCode()  + (long) Integer.MAX_VALUE);
         double result = med * fac;
@@ -43,5 +44,13 @@ public class NameService {
         return isEmpty ? largest : owner;
     }
 
+    public static void startUp(String ip,int port,String name){
+        Integer id = getHash(name);
+        NodeRepository repo = NodeRepository.getInstance();
+        repo.setCurrentId(id);
+        repo.setSelfIp(ip);
+        repo.setSelfPort(port);
+        repo.setName(name);
+    }
 
 }

@@ -1,13 +1,13 @@
-package kaasenwijn.namenode.service;
+package kaasenwijn.namenode.util;
 
+import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
-import java.io.OutputStream;
+
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.Socket;
 
-public class NodeMulticastListener extends Thread{
+public class NodeMulticastReceiver extends Thread{
     private static final String multicastAddress = "230.0.0.0";
     private static final int PORT = 4446;
 
@@ -29,34 +29,35 @@ public class NodeMulticastListener extends Thread{
 
                 // Process the message
                 JSONObject obj = new JSONObject(messageReceived);
-                System.out.println(messageReceived);
-                System.out.println(obj);
-                // Extract name & IP, Port
-                String name = obj.getString("name");
-                String ip = obj.getString("ip");
-                int port = obj.getInt("port");
-                System.out.println("Multicast received from multicast: " + name + " - " + ip+":"+port);
 
-                // Send back via unicast
-                sendNodeResponse(ip,port);
+                // First check if it shouldn't be dropped, before processing further
+                if(NodeService.shouldDrop(obj)){
+                    System.out.println("[dropped] source and destination are the same");
+                    continue;
+                }
+
+                String type = obj.getString("type");
+                // Extract name & IP, Port
+                JSONObject source = obj.getJSONObject("source");
+                String name = source.getString("name");
+                String ip = source.getString("ip");
+                int port = source.getInt("port");
+
+
+                switch (type){
+                    case "bootstrap":
+                        System.out.println("[bootstrap] "+ ip+":"+port+" ("+name+")");
+                        int hashSender = NodeService.getHash(name);
+                        JSONObject data = NodeService.updateNeighborsData(hashSender);
+                        // Send back via unicast
+                        if(!data.isEmpty()){
+                            NodeSender.sendUnicastMessage(ip,port, "update_ids",data);
+                        }
+                        break;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-    // send the node count back to the node
-    // TODO: make this useful, now it's for testing purpose
-    private void sendNodeResponse(String ip, int port) {
-        int totalNodeCount = 69;
-        try (Socket responseSocket = new Socket(ip, port)) {
-            OutputStream out = responseSocket.getOutputStream();
-            String response = "{\"type\":\"welcome\", \"nodes\":" + totalNodeCount + "}";
-            out.write(response.getBytes());
-            out.flush();
-            System.out.println("Sent node count (" + totalNodeCount + ") to: " + ip);
-        } catch (Exception e) {
-            System.err.println("Failed to send node count to: " + ip + " and port: "+port);
-            System.err.println(e);
         }
     }
 }

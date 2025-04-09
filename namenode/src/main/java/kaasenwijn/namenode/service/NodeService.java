@@ -1,29 +1,29 @@
 package kaasenwijn.namenode.service;
 
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.util.NodeSender;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.OutputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-
-import java.io.File;
+import java.util.Objects;
 
 @Service
 public class NodeService {
 
-    public static void startUp(String ip,String name){
+    private final static NodeRepository nodeRepository = NodeRepository.getInstance();
+    public static void startUp(String ip,int port,String name){
         Integer id = getHash(name);
         NodeRepository repo = NodeRepository.getInstance();
         repo.setCurrentId(id);
         repo.setSelfIp(ip);
+        repo.setSelfPort(port);
+        repo.setName(name);
+        repo.setNextId(id);
+        repo.setPreviousId(id);
 
-        verifyLocalFiles();
-        reportLocalFilesToNamingServer();
+        // TODO: fix for lab5, currently makes the server crash
+        // verifyLocalFiles();
+        // reportLocalFilesToNamingServer();
     }
     //The same hash function as the Namingserver:
     public static Integer getHash(String name){
@@ -33,20 +33,37 @@ public class NodeService {
         return (int) Math.floor(result);
     }
 
-    public void updateNeighbors(int hash){
-        NodeRepository nodeRepo = NodeRepository.getInstance();
-        int currentId = nodeRepo.getCurrentId();
+    public static JSONObject updateNeighborsData(int hash){
+        int currentId = nodeRepository.getCurrentId();
 
-        int previousId = nodeRepo.getPreviousId();
-        int nextId = nodeRepo.getNextId();
+        int previousId = nodeRepository.getPreviousId();
+        int nextId = nodeRepository.getNextId();
+
+        JSONObject data = new JSONObject();
+
+        // When network exists of one node and another joins
+        if(currentId == nextId && currentId == previousId){
+            nodeRepository.setNextId(hash);
+            nodeRepository.setPreviousId(hash);
+            // Data to send in unicast to node to say that it's between this node and the nextid of this node
+            data.put("previous_id",nodeRepository.getCurrentId());
+            data.put("next_id",nodeRepository.getCurrentId());
+        }
 
         if(currentId < hash && hash < nextId){
-            nodeRepo.setNextId(hash);
-            //TODO: send response to next
+            nodeRepository.setNextId(hash);
+            // Data to send in unicast to node to say that it's between this node and the nextid of this node
+            data.put("previous_id",nodeRepository.getCurrentId());
+            data.put("next_id",hash);
+
+
         }else if(previousId < hash && hash < currentId){
-            nodeRepo.setPreviousId(hash);
-            //TODO: send response to previous
+            nodeRepository.setPreviousId(hash);
+            // Data to send in unicast to node to say that it's between the previous node and this node
+            data.put("previous_id",hash);
+            data.put("next_id",nodeRepository.getCurrentId());
         }
+        return data;
     }
 
     public static void verifyLocalFiles(){
@@ -83,6 +100,12 @@ public class NodeService {
 
 
         }
+    }
+
+    public static boolean shouldDrop(JSONObject packet){
+        JSONObject source = packet.getJSONObject("source");
+        return Objects.equals(nodeRepository.getSelfIp(), source.getString("ip"));
+
     }
 
 }

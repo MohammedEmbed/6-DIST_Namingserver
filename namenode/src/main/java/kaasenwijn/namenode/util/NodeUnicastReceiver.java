@@ -5,28 +5,20 @@ import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.*;
 
-public class NodeReceiver extends Thread {
-
+public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
-    private static final int UNICAST_RECEIVE_PORT = 8081; // Node unicast listener port
 
-    private final int currentID;
-    private final String selfIp;
+    private static final NodeRepository nodeRepository = NodeRepository.getInstance();
 
-    public NodeReceiver(String nodeName) {
-        this.currentID = NodeService.getHash(nodeName);
-        this.selfIp = NodeRepository.getInstance().getSelfIp();
-    }
 
     @Override
     public void run() {
-        try (ServerSocket serverSocket = new ServerSocket(UNICAST_RECEIVE_PORT)) {
-            System.out.println("UnicastReceiver started on port 8081...");
+        try {
+            InetAddress bindAddress = InetAddress.getByName(nodeRepository.getSelfIp());
+            ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(),50,bindAddress);
+            System.out.println("Socked opened on: "+nodeRepository.getSelfIp()+":"+nodeRepository.getSelfPort());
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -39,26 +31,48 @@ public class NodeReceiver extends Thread {
                 }
 
                 String message = messageBuilder.toString();
-                System.out.println("Received message: " + message);
+                JSONObject json = new JSONObject(message);
+                String type = json.getString("type");
+                // Cotains ip, port and name of sender
+                JSONObject source = json.getJSONObject("source");
+                JSONObject data = json.getJSONObject("data");
 
-                if (message.contains("welcome")) {
-                    JSONObject welcome = new JSONObject(message);
-                    int nodeCount = welcome.getInt("nodes");
+                switch (type){
+                    case "welcome":
+                        int nodeCount = data.getInt("nodes");
+                        System.out.println("[Welcome] Nodes in system: " + nodeCount);
 
-                    System.out.println("Welcome from naming server. Nodes in system: " + nodeCount);
+                        // If count is one, the node is alone in the network
+                        if (nodeCount == 1){
+                            nodeRepository.setPreviousId(nodeRepository.getCurrentId());
+                            nodeRepository.setNextId(nodeRepository.getCurrentId());
+                        }
+                        // If the count is not 1, it wil receive messages from other nodes to update prev and next id
 
-                    // Reply with local file report
-                    sendFileReportViaTCP("<NAMING_SERVER_IP>", UNICAST_SENDER_PORT); // TODO: Replace with actual IP
-                }
+                        // TODO: is this for lab5?
+                        // TODO: Replace with actual IP
+                        // Reply with local file report
+                        //sendFileReportViaTCP("<NAMING_SERVER_IP>", UNICAST_SENDER_PORT);
+                        break;
 
-                else if (message.contains("replication_request")) {
-                    JSONObject request = new JSONObject(message);
-                    String filename = request.getString("file");
-                    String targetIp = request.getString("to");
+                    case "update_ids":
+                        if(!data.isEmpty()){
+                            int nextId = data.getInt("next_id");
+                            int previousId = data.getInt("previous_id");
+                            nodeRepository.setNextId(nextId);
+                            nodeRepository.setPreviousId(previousId);
+                            System.out.println("[update_ids] New nextid: "+nextId+" , new previousid: "+previousId);
+                        }
 
-                    System.out.printf("Received replication request → Send '%s' to %s%n", filename, targetIp);
+                        break;
 
-                    sendFileToNode(filename, targetIp);
+                    // TODO: fix for lab5
+                    case "replication_request":
+                        String filename = data.getString("file");
+                        String targetIp = data.getString("to");
+                        System.out.printf("Received replication request → Send '%s' to %s%n", filename, targetIp);
+                        sendFileToNode(filename, targetIp);
+                        break;
                 }
 
                 in.close();
@@ -71,6 +85,7 @@ public class NodeReceiver extends Thread {
         }
     }
 
+    // TODO: fix for lab5
     // Sends file report to naming server via TCP
     private void sendFileReportViaTCP(String namingServerIp, int port) {
         try {
@@ -81,7 +96,7 @@ public class NodeReceiver extends Thread {
             }
 
             JSONObject report = new JSONObject();
-            report.put("ip", selfIp);
+            report.put("ip", nodeRepository.getSelfIp());
 
             JSONObject files = new JSONObject();
             for (File file : folder.listFiles()) {
@@ -106,6 +121,7 @@ public class NodeReceiver extends Thread {
         }
     }
 
+    // TODO: fix for lab5
     // Sends file to another node via HTTP POST
     private void sendFileToNode(String filename, String targetIp) {
         try {
