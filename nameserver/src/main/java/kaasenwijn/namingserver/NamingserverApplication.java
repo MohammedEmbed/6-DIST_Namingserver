@@ -1,7 +1,7 @@
 package kaasenwijn.namingserver;
 
 import kaasenwijn.namingserver.repository.IpRepository;
-import kaasenwijn.namingserver.service.NameServerMulticastListener;
+import kaasenwijn.namingserver.service.NameServerListener;
 import kaasenwijn.namingserver.service.NameService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,8 +22,8 @@ public class NamingserverApplication {
 
         // Start listening for multicasts
         NameService nameService = new NameService(); // or get it from Spring
-        NameServerMulticastListener listener = new NameServerMulticastListener(nameService);
-        listener.start();
+        NameServerListener listener = new NameServerListener(nameService);
+        listener.run();
 
         // Print node info
         IpRepository.printRegisteredNodes();

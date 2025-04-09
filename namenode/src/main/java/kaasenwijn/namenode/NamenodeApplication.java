@@ -4,6 +4,7 @@ import kaasenwijn.namenode.service.NodeMulticastListener;
 import kaasenwijn.namenode.service.NodeService;
 import kaasenwijn.namenode.service.UnicastReceiver;
 import kaasenwijn.namenode.util.MulticastSender;
+import kaasenwijn.namenode.service.NodeService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
