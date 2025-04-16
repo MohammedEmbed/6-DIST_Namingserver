@@ -10,7 +10,7 @@ public class NodeRepository {
 
     private NodeRepository(){
         nodeStructure = new NodeStructure();
-
+        nodeStructure.namingServerIp = "127.0.0.1"; // TODO: get ip programmatically
     }
 
     public static synchronized NodeRepository getInstance(){
@@ -54,19 +54,32 @@ public class NodeRepository {
         this.nodeStructure.selfPort = selfPort;
     }
 
-    public int getPreviousId() {
-        return nodeStructure.previousId.Id;
+    public Neighbor getPrevious() {
+        return nodeStructure.previous;
     }
 
-    public void setPreviousId(int previousId) {
-        nodeStructure.previousId = new Neighbor(previousId, "127.0.0.1");
+    public int getPreviousId() {
+        return nodeStructure.previous.Id;
+    }
+
+
+    public void setPrevious(String name, int previousId) {
+        nodeStructure.previous = new Neighbor(name, previousId);
+    }
+
+    public Neighbor getNext(){
+        return nodeStructure.next;
     }
 
     public int getNextId() {
-        return nodeStructure.nextId.Id;
+        return nodeStructure.next.Id;
     }
 
-    public void setNextId(int nextId) {
-        nodeStructure.nextId = new Neighbor(nextId, "127.0.0.1");
+    public void setNext(String name, int nextId) {
+        nodeStructure.next = new Neighbor(name, nextId);
+    }
+
+    public String getNamingServerIp(){
+        return nodeStructure.namingServerIp;
     }
 }

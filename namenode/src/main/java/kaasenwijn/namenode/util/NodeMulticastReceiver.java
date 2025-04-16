@@ -48,7 +48,7 @@ public class NodeMulticastReceiver extends Thread{
                     case "bootstrap":
                         System.out.println("[bootstrap] "+ ip+":"+port+" ("+name+")");
                         int hashSender = NodeService.getHash(name);
-                        JSONObject data = NodeService.updateNeighborsData(hashSender);
+                        JSONObject data = NodeService.updateNeighborsData(name, hashSender);
                         // Send back via unicast
                         if(!data.isEmpty()){
                             NodeSender.sendUnicastMessage(ip,port, "update_ids",data);

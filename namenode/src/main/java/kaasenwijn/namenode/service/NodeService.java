@@ -1,10 +1,15 @@
 package kaasenwijn.namenode.service;
 
+import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.NodeSender;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Objects;
 
 @Service
@@ -18,8 +23,8 @@ public class NodeService {
         repo.setSelfIp(ip);
         repo.setSelfPort(port);
         repo.setName(name);
-        repo.setNextId(id);
-        repo.setPreviousId(id);
+        repo.setNext(name, id);
+        repo.setPrevious(name, id);
 
         // TODO: fix for lab5, currently makes the server crash
         // verifyLocalFiles();
@@ -33,7 +38,7 @@ public class NodeService {
         return (int) Math.floor(result);
     }
 
-    public static JSONObject updateNeighborsData(int hash){
+    public static JSONObject updateNeighborsData(String name, int hash){
         int currentId = nodeRepository.getCurrentId();
 
         int previousId = nodeRepository.getPreviousId();
@@ -43,22 +48,22 @@ public class NodeService {
 
         // When network exists of one node and another joins
         if(currentId == nextId && currentId == previousId){
-            nodeRepository.setNextId(hash);
-            nodeRepository.setPreviousId(hash);
+            nodeRepository.setNext(name, hash);
+            nodeRepository.setPrevious(name, hash);
             // Data to send in unicast to node to say that it's between this node and the nextid of this node
             data.put("previous_id",nodeRepository.getCurrentId());
             data.put("next_id",nodeRepository.getCurrentId());
         }
 
         if(currentId < hash && hash < nextId){
-            nodeRepository.setNextId(hash);
+            nodeRepository.setNext(name, hash);
             // Data to send in unicast to node to say that it's between this node and the nextid of this node
             data.put("previous_id",nodeRepository.getCurrentId());
             data.put("next_id",hash);
 
 
         }else if(previousId < hash && hash < currentId){
-            nodeRepository.setPreviousId(hash);
+            nodeRepository.setPrevious(name, hash);
             // Data to send in unicast to node to say that it's between the previous node and this node
             data.put("previous_id",hash);
             data.put("next_id",nodeRepository.getCurrentId());
@@ -108,4 +113,56 @@ public class NodeService {
 
     }
 
+
+    /** SHUTDOWN state
+     * Send the ID of the next node to the previous node. In the previous node,
+     *   the next node parameter will be updated according to this information.
+     * Send the ID of the previous node to the next node. In the next node, the
+     *   previous node parameter will be updated according to this information
+     * Remove the node from the Naming server’s Map
+
+     */
+    public static void shutdown() {
+System.out.println("Shutting down");
+        String currentName = nodeRepository.getName();
+
+        Neighbor previous = nodeRepository.getPrevious();
+        Neighbor next = nodeRepository.getNext();
+
+        JSONObject dataForPrevious = new JSONObject();
+        // Data to send in unicast to previous node to give its new next node
+        dataForPrevious.put("next_id", next.Id);
+        System.out.println("Info - Current Name: " + currentName + ", Previous ID: " + previous.Id + ", Next ID: " + next.Id+" Data for prev: "+dataForPrevious.toString());
+        NodeSender.sendUnicastMessage(previous.getIp(), previous.getPort(), "update_next_id", dataForPrevious);
+
+        JSONObject dataForNext = new JSONObject();
+        // Data to send in unicast to next node to give its new previous node
+        dataForNext.put("previous_id", previous.Id);
+        System.out.println(dataForNext.toString());
+        NodeSender.sendUnicastMessage(next.getIp(), next.getPort(), "update_previous_id", dataForNext);
+
+        // Send HTTP DELETE request to nameserver to remove this node
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        try {
+            URL url = new URL("http://" + namingServerIp + ":8080/api/node/" + currentName);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                System.out.println("DELETE request for '" + currentName + "' successfully sent to " + namingServerIp);
+            } else {
+                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
+            }
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            System.err.println("Error DELETE request to " + namingServerIp);
+            e.printStackTrace();
+        }
+
+    }
 }

@@ -32,7 +32,9 @@ public class NodeController {
     @GetMapping("/{name}")
     public ResponseEntity<?> GetNode(@PathVariable String name) {
         Integer hash = nameService.getHash(name);
+        System.out.println("Hash "+name+" requested: "+hash.toString());
         if(!ipRepo.ipExists(hash)){
+            System.out.println("Node "+name+" not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
         }
         return ResponseEntity.ok().body(new Node(name,ipRepo.getIp(hash)));
@@ -45,6 +47,7 @@ public class NodeController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
         }
         ipRepo.remove(hash);
+        System.out.println("Node "+name+" deleted");
         return ResponseEntity.ok().body(null);
     }
 

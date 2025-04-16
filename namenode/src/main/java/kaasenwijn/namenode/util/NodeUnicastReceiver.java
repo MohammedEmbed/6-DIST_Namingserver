@@ -44,8 +44,8 @@ public class NodeUnicastReceiver extends Thread {
 
                         // If count is one, the node is alone in the network
                         if (nodeCount == 1){
-                            nodeRepository.setPreviousId(nodeRepository.getCurrentId());
-                            nodeRepository.setNextId(nodeRepository.getCurrentId());
+                            nodeRepository.setPrevious(nodeRepository.getName(), nodeRepository.getCurrentId());
+                            nodeRepository.setNext(nodeRepository.getName(), nodeRepository.getCurrentId());
                         }
                         // If the count is not 1, it wil receive messages from other nodes to update prev and next id
 
@@ -57,14 +57,33 @@ public class NodeUnicastReceiver extends Thread {
 
                     case "update_ids":
                         if(!data.isEmpty()){
+                            String name = source.getString("name");
                             int nextId = data.getInt("next_id");
                             int previousId = data.getInt("previous_id");
-                            nodeRepository.setNextId(nextId);
-                            nodeRepository.setPreviousId(previousId);
+                            nodeRepository.setNext(name, nextId);
+                            nodeRepository.setPrevious(name, previousId);
                             System.out.println("[update_ids] New nextid: "+nextId+" , new previousid: "+previousId);
                         }
-
                         break;
+
+                    // For Shutdown
+                    case "update_next_id":
+                        if(!data.isEmpty()){
+                            String name = source.getString("name");
+                            int nextId = data.getInt("next_id");
+                            nodeRepository.setNext(name, nextId);
+                            System.out.println("[update_next_id] New nextid: "+nextId);
+                        }
+                        break;
+
+                    case "update_previous_id":
+                        if (!data.isEmpty()){
+                            String name = source.getString("name");
+                            int previousId = data.getInt("previous_id");
+                            nodeRepository.setPrevious(name, previousId);
+                            System.out.println("[update_previous_id] New previousid: "+previousId);
+                        }
+                    break;
 
                     // TODO: fix for lab5
                     case "replication_request":

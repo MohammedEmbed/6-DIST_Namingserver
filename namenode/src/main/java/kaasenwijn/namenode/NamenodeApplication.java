@@ -30,6 +30,11 @@ public class NamenodeApplication {
 		Thread.sleep(5000);
 		NodeSender.sendMulticastMessage("bootstrap");
 
+
+		// Register a Shutdown hook
+		// https://www.baeldung.com/jvm-shutdown-hooks
+		Thread shutdownHook = new Thread(() -> NodeService.shutdown());
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 
 }

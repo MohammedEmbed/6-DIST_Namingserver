@@ -8,8 +8,10 @@ public class NodeStructure {
 
     public int selfPort;
 
-    public Neighbor previousId;
-    public Neighbor nextId;
+    public Neighbor previous;
+    public Neighbor next;
+
+    public String namingServerIp;
 
     public String name;
 
