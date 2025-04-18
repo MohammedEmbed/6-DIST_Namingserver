@@ -6,6 +6,8 @@ import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Random;
+
 @SpringBootApplication
 public class NamenodeApplication {
 
@@ -27,9 +29,15 @@ public class NamenodeApplication {
 
 		// Start sending multicasts
 		// Add a little delay to give everybody time to start-up
-		Thread.sleep(5000);
+		Random rand = new Random();
+		Thread.sleep(4500 + rand.nextInt(500));
 		NodeSender.sendMulticastMessage("bootstrap");
-
+		Thread.sleep( rand.nextInt(500));
+		NodeSender.sendMulticastMessage("bootstrap");
+		Thread.sleep( rand.nextInt(500));
+		NodeSender.sendMulticastMessage("bootstrap");
+		Thread.sleep( rand.nextInt(500));
+		NodeSender.sendMulticastMessage("bootstrap");
 
 		// Register a Shutdown hook
 		// https://www.baeldung.com/jvm-shutdown-hooks

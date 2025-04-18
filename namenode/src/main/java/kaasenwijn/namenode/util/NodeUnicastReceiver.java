@@ -46,7 +46,15 @@ public class NodeUnicastReceiver extends Thread {
                         if (nodeCount == 1){
                             nodeRepository.setPrevious(nodeRepository.getName(), nodeRepository.getCurrentId());
                             nodeRepository.setNext(nodeRepository.getName(), nodeRepository.getCurrentId());
+                        } else {
+                            // TODO: remove placeholder with actual name of the node
+                            // This data is not saved on the NS, so ether the name has to be saved in the hashmap on NS
+                            //  or the NS needs an API endpoint to retrieve the IP by hash instead of by name
+                            nodeRepository.setPrevious("placeholder", data.getInt("previousNode"));
+                            nodeRepository.setNext("placeholder", data.getInt("nextNode"));
                         }
+                        System.out.println("[welcome] nextid: "+nodeRepository.getNextId()+" , previousid: "+nodeRepository.getPreviousId());
+
                         // If the count is not 1, it wil receive messages from other nodes to update prev and next id
 
                         // TODO: is this for lab5?

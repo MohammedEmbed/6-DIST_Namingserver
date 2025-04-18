@@ -1,11 +1,14 @@
 package kaasenwijn.namingserver.repository;
 
+import kaasenwijn.namingserver.model.Node;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -31,6 +34,48 @@ public class IpRepository {
     public String getIp(int id) {
         return this.ipMap.getOrDefault(id, "ip doesn't exist");
 
+    }
+
+    public int getNextId(int hash) {
+        // https://stackoverflow.com/a/2657015
+        // Create a TreeMap to sort the entries by key
+        TreeMap<Integer, String> sortedMap = new TreeMap<>(this.ipMap);
+
+        // Find the entry with the current key
+        Map.Entry<Integer, String> currentEntry = sortedMap.ceilingEntry(hash);
+        if (currentEntry == null) {
+            return 0; // Current key not found in the map
+        }
+
+        // Get the next entry
+        Map.Entry<Integer, String> nextEntry = sortedMap.higherEntry(hash);
+        if (nextEntry == null) {
+            return sortedMap.firstKey().hashCode();
+        }
+
+        // Return the hash code of the next entry's key
+        return nextEntry.getKey().hashCode();
+    }
+
+    public int getPreviousId(int id) {
+        // https://stackoverflow.com/a/2657015
+        // Create a TreeMap to sort the entries by key
+        TreeMap<Integer, String> sortedMap = new TreeMap<>(this.ipMap);
+
+        // Find the entry with the current key
+        Map.Entry<Integer, String> currentEntry = sortedMap.ceilingEntry(id);
+        if (currentEntry == null) {
+            return 0; // Current key not found in the map
+        }
+
+        // Get the next entry
+        Map.Entry<Integer, String> prevEntry = sortedMap.lowerEntry(id);
+        if (prevEntry == null) {
+            return sortedMap.lastKey().hashCode();
+        }
+
+        // Return the hash code of the next entry's key
+        return prevEntry.getKey().hashCode();
     }
 
     public boolean ipExists(int id) {

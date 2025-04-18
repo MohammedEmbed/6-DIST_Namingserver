@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.service;
 
+import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.repository.IpRepository;
 import org.json.JSONObject;
 
@@ -50,7 +51,17 @@ public class NameServerMulticastReceiver extends Thread {
                         System.out.println("[bootstrap 2/2] Added node from multicast: " + name + " (" + ip + ") → ID: " + nodeId);
                         // Send back via unicast
                         JSONObject data = new JSONObject();
-                        data.put("nodes",ipRepo.getMap().size());
+                        int systemSize = ipRepo.getMap().size();
+                        data.put("nodes", systemSize);
+                        if (systemSize == 1){
+                            data.put("previousNode", nodeId);
+                            data.put("nextNode", nodeId);
+                        }else{
+                            // TODO: Also send name of node, preferably as a new Node object
+                            data.put("previousNode", ipRepo.getPreviousId(nodeId));
+                            data.put("nextNode", ipRepo.getNextId(nodeId));
+                        }
+
                         NameServerSender.sendUnicastMessage(ip,port,"welcome",data);
                         break;
                 }
