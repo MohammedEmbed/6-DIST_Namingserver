@@ -1,17 +1,15 @@
 package kaasenwijn.namingserver.service;
 
+import kaasenwijn.namingserver.model.Neighbours;
+import kaasenwijn.namingserver.model.NodeIp;
 import kaasenwijn.namingserver.repository.IpRepository;
 import kaasenwijn.namingserver.repository.NodeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
-import static java.lang.Math.abs;
-
 @Service
 public class NameService {
+
+    private final static IpRepository ipRepo = IpRepository.getInstance();
 
     /**
      * Implementation of the hashing function as described in the project explanation.
@@ -51,6 +49,17 @@ public class NameService {
         repo.setSelfIp(ip);
         repo.setSelfPort(port);
         repo.setName(name);
+    }
+
+
+    public static Neighbours getNeighbours(int id){
+        int nextId = ipRepo.getNextId(id);
+        int prevId = ipRepo.getPreviousId(id);
+        String nextIp = ipRepo.getIp(nextId);
+        String prevIp = ipRepo.getIp(prevId);
+        return new Neighbours(new NodeIp(nextId,nextIp), new NodeIp(prevId,prevIp));
+
+
     }
 
 }

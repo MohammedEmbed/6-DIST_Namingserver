@@ -7,6 +7,8 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
+import static kaasenwijn.namenode.util.Failure.handleFailure;
+
 public class NodeMulticastReceiver extends Thread{
     private static final String multicastAddress = "230.0.0.0";
     private static final int PORT = 4446;
@@ -51,7 +53,11 @@ public class NodeMulticastReceiver extends Thread{
                         JSONObject data = NodeService.updateNeighborsData(hashSender);
                         // Send back via unicast
                         if(!data.isEmpty()){
-                            NodeSender.sendUnicastMessage(ip,port, "update_ids",data);
+                            try {
+                                NodeSender.sendUnicastMessage(ip, port, "update_ids", data);
+                            }catch (CommunicationException e){
+                                handleFailure(hashSender);
+                            }
                         }
                         break;
                 }

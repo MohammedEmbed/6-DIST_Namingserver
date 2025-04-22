@@ -1,41 +1,72 @@
 package kaasenwijn.namenode.util;
 
-import java.net.InetAddress;
+import kaasenwijn.namenode.model.Neighbor;
+import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.service.NodeService;
+import org.json.JSONObject;
 
 public class Failure {
 
-    public boolean ping(String ip){
+    public static void healthCheck(){
         // https://stackoverflow.com/a/29460716
         try{
-            InetAddress address = InetAddress.getByName(ip);
-            boolean reachable = address.isReachable(1000);
+            // Send a message to neighbours
+            // Health check next neighbour
+            NodeRepository nodeRepo = NodeRepository.getInstance();
+            Neighbor next = nodeRepo.getNext();
+            try{
+                NodeSender.sendUnicastMessage(next.getIp(),next.getPort(),"health-check");
+                System.out.println("[Health-check: previous] Successfully send to: "+ next.getIp() + ":"+ next.getPort());
 
-            System.out.println("Is host reachable? " + reachable);
-            return reachable;
+            }catch (CommunicationException c){
+                System.out.println("[Health-check: next] Detected failure!");
+                System.out.println("Detected broken next node");
+                handleFailure(next.Id);
+            }
+
+            Neighbor prev = nodeRepo.getNext();
+            try{
+                NodeSender.sendUnicastMessage(prev.getIp(),prev.getPort(),"health-check");
+                System.out.println("[Health-check: next] Successfully send to: "+ prev.getIp() + ":" + prev.getPort());
+
+            }catch (CommunicationException c){
+                System.out.println("[Health-check: previous] Detected failure!");
+                handleFailure(prev.Id);
+            }
+
         } catch (Exception e){
-            ExecuteFailure(ip);
+            System.out.println("Something big went wrong!!! oeiiisss");
             e.printStackTrace();
         }
-        ExecuteFailure(ip);
-        return false;
     }
 
-    /**
-     *  This algorithm is activated in every exception thrown during communication
-     *   with other nodes. This allows distributed detection of node failure<br/><br/>
-     *  Request the previous node and next node parameters from the nameserver<br/>
-     *  Update the `next node` parameter of the previous node with the information
-     *   received from the nameserver<br/>
-     *  Update the `previous node` parameter of the next node with the information
-     *   received from the nameserver<br/>
-     *  Remove the node from the Naming server<br/>
-     *  Test this algorithm manually terminating a node (CTRL – C) and use a ping
-     *   method as part of each node, that throws an exception when connection fails
-     *   to a given node
-     * @param ip
-     */
-    public void ExecuteFailure(String ip){
+    public static void handleFailure(int hash){
+        // Request prev and next node parameters of failed node from NS
+        JSONObject nbData = NodeService.getNeighbours(hash);
+        JSONObject next = nbData.getJSONObject("next");
+        JSONObject prev = nbData.getJSONObject("previous");
 
+        // Update previous node, it's next id
+        JSONObject dataForPrevious = new JSONObject();
+        dataForPrevious.put("next_id", next.getInt("id"));
+        try{
+            NodeSender.sendUnicastMessage(prev.getString("ip"), prev.getInt("port"), "update_next_id", dataForPrevious);
+
+        }catch (CommunicationException e){
+            // TODO: handle failure
+            System.out.println("Updating neighbour info failed!");
+
+        }
+
+        // Update next node, it's prev id
+        JSONObject dataForNext = new JSONObject();
+        dataForNext.put("previous_id", prev.getInt("id"));
+        try{
+            NodeSender.sendUnicastMessage(next.getString("ip"), next.getInt("port"), "update_previous_id", dataForNext);
+        }catch(CommunicationException e){
+            // TODO: handle failure
+            System.out.println("Updating neighbour info failed!");
+        }
     }
 
 

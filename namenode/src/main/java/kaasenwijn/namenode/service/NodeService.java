@@ -2,15 +2,17 @@ package kaasenwijn.namenode.service;
 
 import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Objects;
+
+import static kaasenwijn.namenode.util.Failure.handleFailure;
 
 @Service
 public class NodeService {
@@ -133,13 +135,25 @@ System.out.println("Shutting down");
         // Data to send in unicast to previous node to give its new next node
         dataForPrevious.put("next_id", next.Id);
         System.out.println("Info - Current Name: " + currentName + ", Previous ID: " + previous.Id + ", Next ID: " + next.Id+" Data for prev: "+dataForPrevious.toString());
-        NodeSender.sendUnicastMessage(previous.getIp(), previous.getPort(), "update_next_id", dataForPrevious);
+        try{
+            NodeSender.sendUnicastMessage(previous.getIp(), previous.getPort(), "update_next_id", dataForPrevious);
+
+        }catch (CommunicationException e){
+            // TODO: handle failure
+            handleFailure(previous.Id);
+
+        }
 
         JSONObject dataForNext = new JSONObject();
         // Data to send in unicast to next node to give its new previous node
         dataForNext.put("previous_id", previous.Id);
         System.out.println(dataForNext.toString());
-        NodeSender.sendUnicastMessage(next.getIp(), next.getPort(), "update_previous_id", dataForNext);
+        try{
+            NodeSender.sendUnicastMessage(next.getIp(), next.getPort(), "update_previous_id", dataForNext);
+        }catch(CommunicationException e){
+            // TODO: handle failure
+            handleFailure(next.Id);
+        }
 
         // Send HTTP DELETE request to nameserver to remove this node
         String namingServerIp = nodeRepository.getNamingServerIp();
@@ -165,4 +179,50 @@ System.out.println("Shutting down");
         }
 
     }
+
+    public static JSONObject getNeighbours(int id) throws RuntimeException{
+
+        // Send HTTP DELETE request to nameserver to remove this node
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        try {
+
+            URL url = new URL("http://" + namingServerIp + ":8080/api/node/nb/" + id);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                conn.disconnect();
+
+                // Parse JSON
+                String jsonString = response.toString();
+                return new JSONObject(jsonString);
+
+            } else {
+                System.out.println("GET request failed with response code: " + responseCode);
+                conn.disconnect();
+                throw new RuntimeException("HTTP communication with nameserver failed");
+            }
+
+
+        } catch (Exception e) {
+            System.err.println("Error DELETE request to " + namingServerIp);
+            e.printStackTrace();
+
+            throw  new RuntimeException();
+        }
+
+
+    }
+
 }

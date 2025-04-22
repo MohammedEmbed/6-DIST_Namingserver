@@ -38,6 +38,9 @@ public class NodeUnicastReceiver extends Thread {
                 JSONObject data = json.getJSONObject("data");
 
                 switch (type){
+                    case "health-check":
+                        // We just want to test if the node is alive, we don't need to respond explicitly
+                        break;
                     case "welcome":
                         int nodeCount = data.getInt("nodes");
                         System.out.println("[Welcome] Nodes in system: " + nodeCount);

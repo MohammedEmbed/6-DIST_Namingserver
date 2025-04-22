@@ -1,6 +1,7 @@
 package kaasenwijn.namingserver.controller;
 
 import kaasenwijn.namingserver.model.ErrorDto;
+import kaasenwijn.namingserver.model.Neighbours;
 import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.service.NameService;
 import kaasenwijn.namingserver.repository.IpRepository;
@@ -59,6 +60,17 @@ public class NodeController {
         ipRepo.remove(hash);
         System.out.println("Node "+name+" deleted");
         return ResponseEntity.ok().body(null);
+    }
+
+
+    @GetMapping("/nb/{id}")
+    public ResponseEntity<?> GetNodeIds(@PathVariable int id) {
+        if(!ipRepo.ipExists(id)){
+            System.out.println("Node "+id+" not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        Neighbours data = NameService.getNeighbours(id);
+        return ResponseEntity.ok().body(data);
     }
 
 }

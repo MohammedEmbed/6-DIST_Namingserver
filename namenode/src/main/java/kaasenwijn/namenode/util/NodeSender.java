@@ -28,9 +28,8 @@ public class NodeSender {
             e.printStackTrace();
         }
     }
-    public static void sendUnicastMessage(String ip,int port, String type, JSONObject data) {
+    public static void sendUnicastMessage(String ip,int port, String type, JSONObject data) throws CommunicationException {
         try(Socket socket = new Socket(ip, port)){
-
             JSONObject unicastMessageObj = createObject(type,data);
             byte[] buf = unicastMessageObj.toString().getBytes(); // the message we want to send turned into bytes
 
@@ -41,11 +40,13 @@ public class NodeSender {
             System.out.println(" Unicast message sent: ip="+ip+" ,port="+port+" ,type="+type);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new CommunicationException(ip, port);
         }
     }
 
+    public static void sendUnicastMessage(String ip,int port, String type) throws CommunicationException {
+        sendUnicastMessage(ip,port,type, new JSONObject());
+    }
     private static JSONObject createObject(String type){ //Method overload
         // Create JSON message with name and ip
         JSONObject messageObj = new JSONObject();
