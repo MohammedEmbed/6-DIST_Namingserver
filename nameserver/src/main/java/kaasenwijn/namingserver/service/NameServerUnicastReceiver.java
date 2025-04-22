@@ -17,7 +17,7 @@ public class NameServerUnicastReceiver extends Thread {
         try  {
             InetAddress bindAddress = InetAddress.getByName(nodeRepository.getSelfIp());
             ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(),50,bindAddress);
-            System.out.println("Socked opened on: "+nodeRepository.getSelfIp()+":"+nodeRepository.getSelfPort());
+            System.out.println("Socket opened on: "+nodeRepository.getSelfIp()+":"+nodeRepository.getSelfPort());
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));

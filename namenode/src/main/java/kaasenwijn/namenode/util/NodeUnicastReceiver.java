@@ -48,7 +48,7 @@ public class NodeUnicastReceiver extends Thread {
                             nodeRepository.setNext(nodeRepository.getCurrentId());
                         } else {
                             // TODO: remove placeholder with actual name of the node
-                            // This data is not saved on the NS, so ether the name has to be saved in the hashmap on NS
+                            // This data is not saved on the NS, so either the name has to be saved in the hashmap on NS
                             //  or the NS needs an API endpoint to retrieve the IP by hash instead of by name
                             nodeRepository.setPrevious(data.getInt("previousNode"));
                             nodeRepository.setNext(data.getInt("nextNode"));
