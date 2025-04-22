@@ -33,7 +33,7 @@ public class NodeUnicastReceiver extends Thread {
                 String message = messageBuilder.toString();
                 JSONObject json = new JSONObject(message);
                 String type = json.getString("type");
-                // Cotains ip, port and name of sender
+                // Contains ip, port and name of sender
                 JSONObject source = json.getJSONObject("source");
                 JSONObject data = json.getJSONObject("data");
 
@@ -44,14 +44,14 @@ public class NodeUnicastReceiver extends Thread {
 
                         // If count is one, the node is alone in the network
                         if (nodeCount == 1){
-                            nodeRepository.setPrevious(nodeRepository.getName(), nodeRepository.getCurrentId());
-                            nodeRepository.setNext(nodeRepository.getName(), nodeRepository.getCurrentId());
+                            nodeRepository.setPrevious(nodeRepository.getCurrentId());
+                            nodeRepository.setNext(nodeRepository.getCurrentId());
                         } else {
                             // TODO: remove placeholder with actual name of the node
                             // This data is not saved on the NS, so ether the name has to be saved in the hashmap on NS
                             //  or the NS needs an API endpoint to retrieve the IP by hash instead of by name
-                            nodeRepository.setPrevious("placeholder", data.getInt("previousNode"));
-                            nodeRepository.setNext("placeholder", data.getInt("nextNode"));
+                            nodeRepository.setPrevious(data.getInt("previousNode"));
+                            nodeRepository.setNext(data.getInt("nextNode"));
                         }
                         System.out.println("[welcome] nextid: "+nodeRepository.getNextId()+" , previousid: "+nodeRepository.getPreviousId());
 
@@ -65,11 +65,10 @@ public class NodeUnicastReceiver extends Thread {
 
                     case "update_ids":
                         if(!data.isEmpty()){
-                            String name = source.getString("name");
                             int nextId = data.getInt("next_id");
                             int previousId = data.getInt("previous_id");
-                            nodeRepository.setNext(name, nextId);
-                            nodeRepository.setPrevious(name, previousId);
+                            nodeRepository.setNext(nextId);
+                            nodeRepository.setPrevious(previousId);
                             System.out.println("[update_ids] New nextid: "+nextId+" , new previousid: "+previousId);
                         }
                         break;
@@ -77,18 +76,16 @@ public class NodeUnicastReceiver extends Thread {
                     // For Shutdown
                     case "update_next_id":
                         if(!data.isEmpty()){
-                            String name = source.getString("name");
                             int nextId = data.getInt("next_id");
-                            nodeRepository.setNext(name, nextId);
+                            nodeRepository.setNext(nextId);
                             System.out.println("[update_next_id] New nextid: "+nextId);
                         }
                         break;
 
                     case "update_previous_id":
                         if (!data.isEmpty()){
-                            String name = source.getString("name");
                             int previousId = data.getInt("previous_id");
-                            nodeRepository.setPrevious(name, previousId);
+                            nodeRepository.setPrevious(previousId);
                             System.out.println("[update_previous_id] New previousid: "+previousId);
                         }
                     break;

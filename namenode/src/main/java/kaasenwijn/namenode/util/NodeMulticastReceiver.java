@@ -20,7 +20,7 @@ public class NodeMulticastReceiver extends Thread{
 
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            System.out.println("Started listening on mutlticast: "+multicastAddress+":"+PORT);
+            System.out.println("Started listening on multicast: "+multicastAddress+":"+PORT);
             while (true) {
                 socket.receive(packet); // Wait for multicast message
 
@@ -48,7 +48,7 @@ public class NodeMulticastReceiver extends Thread{
                     case "bootstrap":
                         System.out.println("[bootstrap] "+ ip+":"+port+" ("+name+")");
                         int hashSender = NodeService.getHash(name);
-                        JSONObject data = NodeService.updateNeighborsData(name, hashSender);
+                        JSONObject data = NodeService.updateNeighborsData(hashSender);
                         // Send back via unicast
                         if(!data.isEmpty()){
                             NodeSender.sendUnicastMessage(ip,port, "update_ids",data);

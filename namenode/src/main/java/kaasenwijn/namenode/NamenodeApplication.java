@@ -41,7 +41,7 @@ public class NamenodeApplication {
 
 		// Register a Shutdown hook
 		// https://www.baeldung.com/jvm-shutdown-hooks
-		Thread shutdownHook = new Thread(() -> NodeService.shutdown());
+		Thread shutdownHook = new Thread(NodeService::shutdown);
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 

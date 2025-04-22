@@ -63,8 +63,8 @@ public class NodeRepository {
     }
 
 
-    public void setPrevious(String name, int previousId) {
-        nodeStructure.previous = new Neighbor(name, previousId);
+    public void setPrevious(int previousId) {
+        nodeStructure.previous = new Neighbor(previousId);
     }
 
     public Neighbor getNext(){
@@ -75,8 +75,8 @@ public class NodeRepository {
         return nodeStructure.next.Id;
     }
 
-    public void setNext(String name, int nextId) {
-        nodeStructure.next = new Neighbor(name, nextId);
+    public void setNext(int nextId) {
+        nodeStructure.next = new Neighbor(nextId);
     }
 
     public String getNamingServerIp(){

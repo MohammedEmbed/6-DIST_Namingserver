@@ -23,8 +23,8 @@ public class NodeService {
         repo.setSelfIp(ip);
         repo.setSelfPort(port);
         repo.setName(name);
-        repo.setNext(name, id);
-        repo.setPrevious(name, id);
+        repo.setNext(id);
+        repo.setPrevious(id);
 
         // TODO: fix for lab5, currently makes the server crash
         // verifyLocalFiles();
@@ -38,7 +38,7 @@ public class NodeService {
         return (int) Math.floor(result);
     }
 
-    public static JSONObject updateNeighborsData(String name, int hash){
+    public static JSONObject updateNeighborsData(int hash){
         int currentId = nodeRepository.getCurrentId();
 
         int previousId = nodeRepository.getPreviousId();
@@ -48,22 +48,22 @@ public class NodeService {
 
         // When network exists of one node and another joins
         if(currentId == nextId && currentId == previousId){
-            nodeRepository.setNext(name, hash);
-            nodeRepository.setPrevious(name, hash);
+            nodeRepository.setNext(hash);
+            nodeRepository.setPrevious(hash);
             // Data to send in unicast to node to say that it's between this node and the nextid of this node
             data.put("previous_id",nodeRepository.getCurrentId());
             data.put("next_id",nodeRepository.getCurrentId());
         }
 
         if(currentId < hash && hash < nextId){
-            nodeRepository.setNext(name, hash);
+            nodeRepository.setNext(hash);
             // Data to send in unicast to node to say that it's between this node and the nextid of this node
             data.put("previous_id",nodeRepository.getCurrentId());
             data.put("next_id",hash);
 
 
         }else if(previousId < hash && hash < currentId){
-            nodeRepository.setPrevious(name, hash);
+            nodeRepository.setPrevious(hash);
             // Data to send in unicast to node to say that it's between the previous node and this node
             data.put("previous_id",hash);
             data.put("next_id",nodeRepository.getCurrentId());

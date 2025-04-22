@@ -10,16 +10,13 @@ import java.net.URL;
 
 public class Neighbor {
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
-    public String Name;
     public Integer Id;
 
 
     /**
-     * @param Name name of the neighbouring node
      * @param Id hash of the neighbouring node
      */
-    public Neighbor(String Name, Integer Id) {
-        this.Name = Name;
+    public Neighbor(Integer Id) {
         this.Id = Id;
 
     }
@@ -55,7 +52,7 @@ public class Neighbor {
         String namingServerIp = nodeRepository.getNamingServerIp();
         System.out.println("GET request for '" + this.Id + "' to " + namingServerIp);
         try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/" + this.Name);
+            URL url = new URL("http://" + namingServerIp + ":8080/api/node/ip/" + this.Id);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("GET");

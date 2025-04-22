@@ -1,5 +1,4 @@
 package kaasenwijn.namenode.model;
-import kaasenwijn.namenode.model.Neighbor;
 
 public class NodeStructure {
 
