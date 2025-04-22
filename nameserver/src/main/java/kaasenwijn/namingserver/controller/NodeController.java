@@ -29,6 +29,16 @@ public class NodeController {
         return ResponseEntity.ok().body(null);
     }
 
+    @GetMapping("ip/{hash}")
+    public ResponseEntity<?> GetIPByHash(@PathVariable int hash) {
+        System.out.println("Ip of "+hash+" requested: ");
+        if(!ipRepo.ipExists(hash)){
+            System.out.println("Node with hash: '"+hash+"' not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        return ResponseEntity.ok().body(new Node(null, ipRepo.getIp(hash)));
+    }
+
     @GetMapping("/{name}")
     public ResponseEntity<?> GetNode(@PathVariable String name) {
         Integer hash = nameService.getHash(name);
