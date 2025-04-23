@@ -1,6 +1,5 @@
 package kaasenwijn.namingserver.repository;
 
-import kaasenwijn.namingserver.model.Node;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -18,13 +17,12 @@ public class IpRepository {
     private static IpRepository single_instance = null;
 
     private final String fileName = "database.json";
-    private IpRepository()
-    {
+
+    private IpRepository() {
         this.readJson();
     }
 
-    public static synchronized IpRepository getInstance()
-    {
+    public static synchronized IpRepository getInstance() {
         if (single_instance == null)
             single_instance = new IpRepository();
 
@@ -33,7 +31,6 @@ public class IpRepository {
 
     public String getIp(int id) {
         return this.ipMap.getOrDefault(id, "ip doesn't exist");
-
     }
 
     public int getNextId(int hash) {
@@ -83,13 +80,13 @@ public class IpRepository {
     }
 
     public void setIp(Integer id, String ip) {
-        if (!ipExists(id)){
-            this.ipMap.put(id,ip);
+        if (!ipExists(id)) {
+            this.ipMap.put(id, ip);
             this.writeJson();
         }
     }
 
-    private void readJson(){
+    private void readJson() {
         File file = new File(this.fileName);
         if (!file.exists()) {
             System.out.println("File not found: ");
@@ -100,7 +97,7 @@ public class IpRepository {
             JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
 
             for (String key : jsonObject.keySet()) {
-                this.ipMap.put(Integer.parseInt(key),jsonObject.getString(key));
+                this.ipMap.put(Integer.parseInt(key), jsonObject.getString(key));
             }
             System.out.println("Parsed JSON to HashSet");
         } catch (IOException e) {
@@ -120,14 +117,15 @@ public class IpRepository {
         }
     }
 
-    public HashMap<Integer, String> getMap(){
+    public HashMap<Integer, String> getMap() {
         return this.ipMap;
     }
-    public static Set<Integer> getAllIds(){
+
+    public static Set<Integer> getAllIds() {
         return getInstance().getMap().keySet();
     }
 
-    public void remove(Integer id){
+    public void remove(Integer id) {
         this.ipMap.remove(id);
     }
 

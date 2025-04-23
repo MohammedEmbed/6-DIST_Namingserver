@@ -9,7 +9,7 @@ import java.net.MulticastSocket;
 
 import static kaasenwijn.namenode.util.Failure.handleFailure;
 
-public class NodeMulticastReceiver extends Thread{
+public class NodeMulticastReceiver extends Thread {
     private static final String multicastAddress = "230.0.0.0";
     private static final int PORT = 4446;
 
@@ -22,7 +22,7 @@ public class NodeMulticastReceiver extends Thread{
 
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            System.out.println("Started listening on multicast: "+multicastAddress+":"+PORT);
+            System.out.println("Started listening on multicast: " + multicastAddress + ":" + PORT);
             while (true) {
                 socket.receive(packet); // Wait for multicast message
 
@@ -33,7 +33,7 @@ public class NodeMulticastReceiver extends Thread{
                 JSONObject obj = new JSONObject(messageReceived);
 
                 // First check if it shouldn't be dropped, before processing further
-                if(NodeService.shouldDrop(obj)){
+                if (NodeService.shouldDrop(obj)) {
                     System.out.println("[dropped] source and destination are the same");
                     continue;
                 }
@@ -45,17 +45,16 @@ public class NodeMulticastReceiver extends Thread{
                 String ip = source.getString("ip");
                 int port = source.getInt("port");
 
-
-                switch (type){
+                switch (type) {
                     case "bootstrap":
-                        System.out.println("[bootstrap] "+ ip+":"+port+" ("+name+")");
+                        System.out.println("[bootstrap] " + ip + ":" + port + " (" + name + ")");
                         int hashSender = NodeService.getHash(name);
                         JSONObject data = NodeService.updateNeighborsData(hashSender);
                         // Send back via unicast
-                        if(!data.isEmpty()){
+                        if (!data.isEmpty()) {
                             try {
                                 NodeSender.sendUnicastMessage(ip, port, "update_ids", data);
-                            }catch (CommunicationException e){
+                            } catch (CommunicationException e) {
                                 handleFailure(hashSender);
                             }
                         }

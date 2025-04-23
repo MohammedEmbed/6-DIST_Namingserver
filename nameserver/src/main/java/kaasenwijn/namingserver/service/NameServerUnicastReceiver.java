@@ -12,12 +12,13 @@ import java.net.Socket;
 
 public class NameServerUnicastReceiver extends Thread {
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
+
     @Override
     public void run() {
-        try  {
+        try {
             InetAddress bindAddress = InetAddress.getByName(nodeRepository.getSelfIp());
-            ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(),50,bindAddress);
-            System.out.println("Socket opened on: "+nodeRepository.getSelfIp()+":"+nodeRepository.getSelfPort());
+            ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(), 50, bindAddress);
+            System.out.println("Socket opened on: " + nodeRepository.getSelfIp() + ":" + nodeRepository.getSelfPort());
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -34,7 +35,7 @@ public class NameServerUnicastReceiver extends Thread {
                 JSONObject data = json.getJSONObject("data");
                 JSONObject source = json.getJSONObject("source");
 
-                switch (type){
+                switch (type) {
                     // TODO: lab 5
                     case "replication":
                         int nodeHash = data.getInt("nodeHash");

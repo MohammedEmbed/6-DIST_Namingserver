@@ -18,31 +18,31 @@ public class NameService {
      * @param name the string value to hash
      * @return hash of the name as an integer value between 0 and 32 768
      */
-    public static Integer getHash(String name){
-        double fac = (double) 32768 /((long) 2*Integer.MAX_VALUE);
-        long med = (name.hashCode()  + (long) Integer.MAX_VALUE);
+    public static Integer getHash(String name) {
+        double fac = (double) 32768 / ((long) 2 * Integer.MAX_VALUE);
+        long med = (name.hashCode() + (long) Integer.MAX_VALUE);
         double result = med * fac;
         return (int) Math.floor(result);
     }
 
-    public Integer getNodeId(String filename){
+    public Integer getNodeId(String filename) {
         Integer fileId = getHash(filename);
-        boolean isEmpty=true;
+        boolean isEmpty = true;
         Integer owner = 0;
         Integer largest = 0;
-        for(Integer nodeId : IpRepository.getAllIds()){
-            if(nodeId > largest){
+        for (Integer nodeId : IpRepository.getAllIds()) {
+            if (nodeId > largest) {
                 largest = nodeId;
             }
-            if(nodeId < fileId && nodeId > owner){
+            if (nodeId < fileId && nodeId > owner) {
                 owner = nodeId;
-                isEmpty=false;
+                isEmpty = false;
             }
         }
         return isEmpty ? largest : owner;
     }
 
-    public static void startUp(String ip,int port,String name){
+    public static void startUp(String ip, int port, String name) {
         Integer id = getHash(name);
         NodeRepository repo = NodeRepository.getInstance();
         repo.setCurrentId(id);
@@ -52,14 +52,12 @@ public class NameService {
     }
 
 
-    public static Neighbours getNeighbours(int id){
+    public static Neighbours getNeighbours(int id) {
         int nextId = ipRepo.getNextId(id);
         int prevId = ipRepo.getPreviousId(id);
         String nextIp = ipRepo.getIp(nextId);
         String prevIp = ipRepo.getIp(prevId);
-        return new Neighbours(new NodeIp(nextId,nextIp), new NodeIp(prevId,prevIp));
-
-
+        return new Neighbours(new NodeIp(nextId, nextIp), new NodeIp(prevId, prevIp));
     }
 
 }
