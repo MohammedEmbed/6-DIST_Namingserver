@@ -3,15 +3,18 @@ package kaasenwijn.namingserver.service;
 import kaasenwijn.namingserver.repository.NodeRepository;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 
 public class NameServerUnicastReceiver extends Thread {
+
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
+    private static final HashMap<String, String> fileOwnership = new HashMap<>(); // filename → ownerIp
+    private static final String LOG_FILE = "replication_log.txt";
+
     @Override
     public void run() {
         try  {
@@ -41,11 +44,15 @@ public class NameServerUnicastReceiver extends Thread {
                         int fileHash = data.getInt("fileHash");
                         String filename = data.getString("filename");
                         String nodeIp = source.getString("ip");
+
                         System.out.printf("Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
                                 nodeIp, filename, fileHash, nodeHash);
                         if (nodeHash < fileHash) {
                             System.out.printf("Node is a replicated one:", nodeIp, nodeHash, filename);
                             // TODO: Store this info, or trigger replication
+                            fileOwnership.put(filename, nodeIp);
+                            logReplication(filename, nodeIp);
+
                         } else {
                             System.out.printf("No replication of this node:", nodeIp, filename);
                         }
@@ -55,6 +62,22 @@ public class NameServerUnicastReceiver extends Thread {
                 clientSocket.close();
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Create a Log with information about on the file that's replicated
+    private void logReplication(String filename, String nodeIp) {
+        try (FileWriter fileWriter = new FileWriter(LOG_FILE, true);
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+             PrintWriter out = new PrintWriter(bufferedWriter)) {
+
+            String logEntry = String.format("Replicated file: %s → Owner: %s", filename, nodeIp);
+            out.println(logEntry);
+            System.out.println("Logged replication: " + logEntry);
+
+        } catch (IOException e) {
+            System.err.println("Failed to log replication.");
             e.printStackTrace();
         }
     }
