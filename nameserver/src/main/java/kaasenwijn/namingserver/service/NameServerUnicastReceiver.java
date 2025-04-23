@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.service;
 
+import kaasenwijn.namingserver.repository.IpRepository;
 import kaasenwijn.namingserver.repository.NodeRepository;
 import org.json.JSONObject;
 
@@ -40,21 +41,34 @@ public class NameServerUnicastReceiver extends Thread {
                 switch (type){
                     // TODO: lab 5
                     case "replication":
-                        int nodeHash = data.getInt("nodeHash");
-                        int fileHash = data.getInt("fileHash");
+                        int nodeHash = data.getInt("nodeHash");      // hash of the node that sent the replication
+                        int fileHash = data.getInt("fileHash");      // hash of the file
                         String filename = data.getString("filename");
-                        String nodeIp = source.getString("ip");
+                        String senderIp = source.getString("ip");    // IP of the sender (originating node)
 
                         System.out.printf("Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
-                                nodeIp, filename, fileHash, nodeHash);
+                                senderIp, filename, fileHash, nodeHash);
+
                         if (nodeHash < fileHash) {
-                            System.out.printf("Node is a replicated one:", nodeIp, nodeHash, filename);
-                            // TODO: Store this info, or trigger replication
-                            fileOwnership.put(filename, nodeIp);
-                            logReplication(filename, nodeIp);
+                            System.out.printf("Node is a replicated one:", senderIp, nodeHash, filename);
+
+                            int ownerId = NameService.getNodeId(filename);
+                            String targetIp = IpRepository.getInstance().getIp(ownerId);
+
+                            if (!targetIp.equals(senderIp)) {
+                                System.out.printf("Node %s should replicate '%s' to new owner %s%n", senderIp, filename, targetIp);
+
+                                fileOwnership.put(filename, targetIp);
+                                logReplication(filename, targetIp);
+
+                                // Tell sender to send the file to the actual owner
+                                NameServerSender.unicastSend(senderIp, targetIp, filename);
+                            } else {
+                                System.out.printf("File '%s' is already owned by the reporting node %s%n", filename, senderIp);
+                            }
 
                         } else {
-                            System.out.printf("No replication of this node:", nodeIp, filename);
+                            System.out.printf("No replication of this node:", senderIp, filename);
                         }
                         break;
                 }

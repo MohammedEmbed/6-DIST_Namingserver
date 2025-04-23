@@ -25,7 +25,7 @@ public class NameService {
         return (int) Math.floor(result);
     }
 
-    public Integer getNodeId(String filename){
+    public static Integer getNodeId(String filename){
         Integer fileId = getHash(filename);
         boolean isEmpty=true;
         Integer owner = 0;
