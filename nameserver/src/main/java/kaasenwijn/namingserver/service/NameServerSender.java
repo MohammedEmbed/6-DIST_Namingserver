@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 public class NameServerSender {
-    private static final int UNICAST_RECEIVE_PORT = 8081; // Node unicast listener port
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
     public static void sendUnicastMessage(String ip,int port, String type, JSONObject data) {
@@ -26,6 +25,8 @@ public class NameServerSender {
             throw new RuntimeException(e);
         }
     }
+
+    private static final int UNICAST_RECEIVE_PORT = 8081; // Node unicast listener port
 
     // TODO: lab5
     public static void unicastSend(String sourceNodeIp, String targetNodeIp, String filename){

@@ -125,7 +125,7 @@ public class NodeService {
 
      */
     public static void shutdown() {
-System.out.println("Shutting down");
+        System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
 
         Neighbor previous = nodeRepository.getPrevious();
@@ -139,7 +139,6 @@ System.out.println("Shutting down");
             NodeSender.sendUnicastMessage(previous.getIp(), previous.getPort(), "update_next_id", dataForPrevious);
 
         }catch (CommunicationException e){
-            // TODO: handle failure
             handleFailure(previous.Id);
 
         }
@@ -151,7 +150,6 @@ System.out.println("Shutting down");
         try{
             NodeSender.sendUnicastMessage(next.getIp(), next.getPort(), "update_previous_id", dataForNext);
         }catch(CommunicationException e){
-            // TODO: handle failure
             handleFailure(next.Id);
         }
 

@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
-public class NamenodeApplication {
+public class NamNamenodeApplication {
 
 	public static void main(String[] args) throws InterruptedException {
 		String ip = System.getenv("SERVER_IP");

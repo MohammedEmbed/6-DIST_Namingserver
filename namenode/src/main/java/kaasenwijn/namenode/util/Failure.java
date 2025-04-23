@@ -14,8 +14,7 @@ public class Failure {
     public static void healthCheck(){
         // https://stackoverflow.com/a/29460716
         try{
-            // Send a message to neighbours
-            // Health check next neighbour
+            // Send a message to next neighbour
             NodeRepository nodeRepo = NodeRepository.getInstance();
             Neighbor next = nodeRepo.getNext();
             try{
@@ -30,6 +29,7 @@ public class Failure {
 
             Neighbor prev = nodeRepo.getNext();
             try{
+                // Send a message to previous neighbour
                 NodeSender.sendUnicastMessage(prev.getIp(),prev.getPort(),"health-check");
                 System.out.println("[Health-check: next] Successfully send to: "+ prev.getIp() + ":" + prev.getPort());
 
@@ -39,7 +39,6 @@ public class Failure {
             }
 
         } catch (Exception e){
-            System.out.println("Something big went wrong!!! oeiiisss");
             e.printStackTrace();
         }
     }
@@ -57,7 +56,6 @@ public class Failure {
             NodeSender.sendUnicastMessage(prev.getString("ip"), prev.getInt("port"), "update_next_id", dataForPrevious);
 
         }catch (CommunicationException e){
-            // TODO: handle failure
             System.out.println("Updating neighbour info failed!");
 
         }
@@ -68,7 +66,6 @@ public class Failure {
         try{
             NodeSender.sendUnicastMessage(next.getString("ip"), next.getInt("port"), "update_previous_id", dataForNext);
         }catch(CommunicationException e){
-            // TODO: handle failure
             System.out.println("Updating neighbour info failed!");
         }
 

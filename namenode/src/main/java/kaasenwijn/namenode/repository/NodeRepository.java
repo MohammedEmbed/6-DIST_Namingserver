@@ -10,7 +10,7 @@ public class NodeRepository {
 
     private NodeRepository(){
         nodeStructure = new NodeStructure();
-        nodeStructure.namingServerIp = "127.0.0.1"; // TODO: get ip programmatically
+        nodeStructure.namingServerIp = System.getenv("NS_IP");
     }
 
     public static synchronized NodeRepository getInstance(){

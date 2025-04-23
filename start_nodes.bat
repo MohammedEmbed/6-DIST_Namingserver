@@ -39,6 +39,7 @@ for %%A in (%IP_PORT_LIST%) do (
         set SERVER_PORT=%%C
         set SERVER_IP=%%B
         set SERVER_NAME=%%D
+        set NS_IP=127.0.0.1
         start "%%D - %%B:%%C" cmd /k "java -jar %JAR_FILE%"
     )
 )
