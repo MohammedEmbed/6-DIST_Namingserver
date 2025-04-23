@@ -62,6 +62,16 @@ public class NodeController {
         return ResponseEntity.ok().body(null);
     }
 
+    @DeleteMapping("hash/{hash}")
+    public ResponseEntity<?> DeleteByHash(@PathVariable int hash) {
+        if(!ipRepo.ipExists(hash)){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        ipRepo.remove(hash);
+        System.out.println("Nodehash "+hash+" deleted");
+        return ResponseEntity.ok().body(null);
+    }
+
 
     @GetMapping("/nb/{id}")
     public ResponseEntity<?> GetNodeIds(@PathVariable int id) {

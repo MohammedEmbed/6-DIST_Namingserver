@@ -57,7 +57,6 @@ public class NameServerMulticastReceiver extends Thread {
                             data.put("previousNode", nodeId);
                             data.put("nextNode", nodeId);
                         }else{
-                            // TODO: Also send name of node, preferably as a new Node object
                             data.put("previousNode", ipRepo.getPreviousId(nodeId));
                             data.put("nextNode", ipRepo.getNextId(nodeId));
                         }
