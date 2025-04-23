@@ -5,7 +5,11 @@ import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class Failure {
+    private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
     public static void healthCheck(){
         // https://stackoverflow.com/a/29460716
@@ -66,6 +70,29 @@ public class Failure {
         }catch(CommunicationException e){
             // TODO: handle failure
             System.out.println("Updating neighbour info failed!");
+        }
+
+        // Send HTTP DELETE request to nameserver to remove this node
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        try {
+            URL url = new URL("http://" + namingServerIp + ":8080/api/node/hash/" + hash);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                System.out.println("DELETE request for hash'" +hash  + "' successfully sent to " + namingServerIp);
+            } else {
+                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
+            }
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            System.err.println("Error DELETE request to " + namingServerIp);
+            e.printStackTrace();
         }
     }
 
