@@ -1,14 +1,11 @@
 package kaasenwijn.namingserver.service;
 
-import kaasenwijn.namingserver.model.Node;
 import kaasenwijn.namingserver.repository.IpRepository;
 import org.json.JSONObject;
 
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.Socket;
 
 public class NameServerMulticastReceiver extends Thread {
     private static final String MULTICAST_ADDRESS = "230.0.0.0";
@@ -41,27 +38,27 @@ public class NameServerMulticastReceiver extends Thread {
                 String ip = source.getString("ip");
                 int port = source.getInt("port");
 
-                switch (type){
+                switch (type) {
                     case "bootstrap":
-                        System.out.println("[bootstrap 1/2] Received bootstrap multicast from: "+ ip+":"+port+" ("+name+")");
+                        System.out.println("[bootstrap 1/2] Received bootstrap multicast from: " + ip + ":" + port + " (" + name + ")");
                         // Store (hash, IP) in naming server map
                         int nodeId = NameService.getHash(name);
-                        String toStoreIp = ip+':'+port;
+                        String toStoreIp = ip + ':' + port;
                         ipRepo.setIp(nodeId, toStoreIp);
                         System.out.println("[bootstrap 2/2] Added node from multicast: " + name + " (" + ip + ") → ID: " + nodeId);
                         // Send back via unicast
                         JSONObject data = new JSONObject();
                         int systemSize = ipRepo.getMap().size();
                         data.put("nodes", systemSize);
-                        if (systemSize == 1){
+                        if (systemSize == 1) {
                             data.put("previousNode", nodeId);
                             data.put("nextNode", nodeId);
-                        }else{
+                        } else {
                             data.put("previousNode", ipRepo.getPreviousId(nodeId));
                             data.put("nextNode", ipRepo.getNextId(nodeId));
                         }
 
-                        NameServerSender.sendUnicastMessage(ip,port,"welcome",data);
+                        NameServerSender.sendUnicastMessage(ip, port, "welcome", data);
                         break;
                 }
             }

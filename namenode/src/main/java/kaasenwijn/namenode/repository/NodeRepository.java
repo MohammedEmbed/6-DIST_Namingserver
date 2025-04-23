@@ -8,13 +8,13 @@ public class NodeRepository {
     private static NodeRepository instance = null;
     private NodeStructure nodeStructure;
 
-    private NodeRepository(){
+    private NodeRepository() {
         nodeStructure = new NodeStructure();
         nodeStructure.namingServerIp = System.getenv("NS_IP");
     }
 
-    public static synchronized NodeRepository getInstance(){
-        if(instance == null){
+    public static synchronized NodeRepository getInstance() {
+        if (instance == null) {
             instance = new NodeRepository();
 
         }
@@ -67,7 +67,7 @@ public class NodeRepository {
         nodeStructure.previous = new Neighbor(previousId);
     }
 
-    public Neighbor getNext(){
+    public Neighbor getNext() {
         return nodeStructure.next;
     }
 
@@ -79,7 +79,7 @@ public class NodeRepository {
         nodeStructure.next = new Neighbor(nextId);
     }
 
-    public String getNamingServerIp(){
+    public String getNamingServerIp() {
         return nodeStructure.namingServerIp;
     }
 }

@@ -17,7 +17,7 @@ public class FileController {
 
     private final IpRepository ipRepo = IpRepository.getInstance();
 
-    //TODO:  add file functions...
+    // TODO: Lab5 add file functions...
     @GetMapping("/{filePath}")
     public synchronized IpDto getFileLocation(@PathVariable String filePath) {
         Integer id = nameService.getNodeId(filePath);

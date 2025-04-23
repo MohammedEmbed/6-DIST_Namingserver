@@ -5,7 +5,7 @@ import kaasenwijn.namingserver.model.NodeStructure;
 public class NodeRepository {
 
     private static NodeRepository instance = null;
-    private NodeStructure nodeStructure;
+    private final NodeStructure nodeStructure;
 
     private NodeRepository(){
         nodeStructure = new NodeStructure();

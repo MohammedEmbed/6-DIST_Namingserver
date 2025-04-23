@@ -12,13 +12,12 @@ public class NodeUnicastReceiver extends Thread {
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
 
-
     @Override
     public void run() {
         try {
             InetAddress bindAddress = InetAddress.getByName(nodeRepository.getSelfIp());
-            ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(),50,bindAddress);
-            System.out.println("Socked opened on: "+nodeRepository.getSelfIp()+":"+nodeRepository.getSelfPort());
+            ServerSocket serverSocket = new ServerSocket(nodeRepository.getSelfPort(), 50, bindAddress);
+            System.out.println("Socked opened on: " + nodeRepository.getSelfIp() + ":" + nodeRepository.getSelfPort());
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -37,7 +36,7 @@ public class NodeUnicastReceiver extends Thread {
                 JSONObject source = json.getJSONObject("source");
                 JSONObject data = json.getJSONObject("data");
 
-                switch (type){
+                switch (type) {
                     case "health-check":
                         // We just want to test if the node is alive, we don't need to respond explicitly
                         break;
@@ -46,14 +45,14 @@ public class NodeUnicastReceiver extends Thread {
                         System.out.println("[Welcome] Nodes in system: " + nodeCount);
 
                         // If count is one, the node is alone in the network
-                        if (nodeCount == 1){
+                        if (nodeCount == 1) {
                             nodeRepository.setPrevious(nodeRepository.getCurrentId());
                             nodeRepository.setNext(nodeRepository.getCurrentId());
                         } else {
                             nodeRepository.setPrevious(data.getInt("previousNode"));
                             nodeRepository.setNext(data.getInt("nextNode"));
                         }
-                        System.out.println("[welcome] nextid: "+nodeRepository.getNextId()+" , previousid: "+nodeRepository.getPreviousId());
+                        System.out.println("[welcome] nextid: " + nodeRepository.getNextId() + " , previousid: " + nodeRepository.getPreviousId());
 
                         // If the count is not 1, it wil receive messages from other nodes to update prev and next id
 
@@ -64,31 +63,31 @@ public class NodeUnicastReceiver extends Thread {
                         break;
 
                     case "update_ids":
-                        if(!data.isEmpty()){
+                        if (!data.isEmpty()) {
                             int nextId = data.getInt("next_id");
                             int previousId = data.getInt("previous_id");
                             nodeRepository.setNext(nextId);
                             nodeRepository.setPrevious(previousId);
-                            System.out.println("[update_ids] New nextid: "+nextId+" , new previousid: "+previousId);
+                            System.out.println("[update_ids] New nextid: " + nextId + " , new previousid: " + previousId);
                         }
                         break;
 
                     // For Shutdown
                     case "update_next_id":
-                        if(!data.isEmpty()){
+                        if (!data.isEmpty()) {
                             int nextId = data.getInt("next_id");
                             nodeRepository.setNext(nextId);
-                            System.out.println("[update_next_id] New nextid: "+nextId);
+                            System.out.println("[update_next_id] New nextid: " + nextId);
                         }
                         break;
 
                     case "update_previous_id":
-                        if (!data.isEmpty()){
+                        if (!data.isEmpty()) {
                             int previousId = data.getInt("previous_id");
                             nodeRepository.setPrevious(previousId);
-                            System.out.println("[update_previous_id] New previousid: "+previousId);
+                            System.out.println("[update_previous_id] New previousid: " + previousId);
                         }
-                    break;
+                        break;
 
                     // TODO: fix for lab5
                     case "replication_request":

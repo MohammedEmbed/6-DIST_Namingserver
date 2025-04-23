@@ -57,7 +57,6 @@ public class Failure {
 
         }catch (CommunicationException e){
             System.out.println("Updating neighbour info failed!");
-
         }
 
         // Update next node, it's prev id
