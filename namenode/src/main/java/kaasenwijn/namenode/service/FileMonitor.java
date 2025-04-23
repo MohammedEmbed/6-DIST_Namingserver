@@ -42,11 +42,11 @@ public class FileMonitor extends Thread {
                                 data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
 
                                 // Send replication request to the naming server
-                                // TODO: Could use some finetuning
+                                // TODO: Warre FIX: Could use some finetuning
                                 try {
                                     NodeSender.sendUnicastMessage(
                                             NodeRepository.getInstance().getNamingServerIp(),
-                                            9090,
+                                            8090,
                                             "replication",
                                             data
                                     );
