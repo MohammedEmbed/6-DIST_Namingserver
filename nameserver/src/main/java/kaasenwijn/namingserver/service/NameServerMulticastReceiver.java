@@ -17,7 +17,6 @@ public class NameServerMulticastReceiver extends Thread {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
 
             socket.joinGroup(group); // Join the multicast group
-            socket.setTimeToLive(64); // Optionally set the time-to-live for multicast packets
 
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
