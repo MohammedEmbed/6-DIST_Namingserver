@@ -41,35 +41,30 @@ public class NameServerUnicastReceiver extends Thread {
                 switch (type){
                     // TODO: lab 5
                     case "replication":
+                        //TODO: Make a list of all files of a node
                         int nodeHash = data.getInt("nodeHash");      // hash of the node that sent the replication
                         int fileHash = data.getInt("fileHash");      // hash of the file
-                        String filename = data.getString("filename");
                         String senderIp = source.getString("ip");    // IP of the sender (originating node)
 
                         System.out.printf("Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
-                                senderIp, filename, fileHash, nodeHash);
+                                senderIp, fileHash, nodeHash);
 
-                        if (nodeHash < fileHash) {
-                            System.out.printf("Node is a replicated one:", senderIp, nodeHash, filename);
+                        int ownerId = NameService.getNodeId(fileHash);// Where it needs to replicate to
+                        String ownerIp = IpRepository.getInstance().getIp(ownerId);// Ip of the owner (target)
 
-                            int ownerId = NameService.getNodeId(filename);
-                            String targetIp = IpRepository.getInstance().getIp(ownerId);
+                        if (!ownerIp.equals(senderIp)) {
+                            System.out.printf("Node %s should replicate '%s' to new owner %s%n", senderIp, ownerIp);
 
-                            if (!targetIp.equals(senderIp)) {
-                                System.out.printf("Node %s should replicate '%s' to new owner %s%n", senderIp, filename, targetIp);
+                            //TODO: Make the fileownership hashset persistant
+                            fileOwnership.put(fileHash, ownerId);
 
-                                fileOwnership.put(filename, targetIp);
-                                logReplication(filename, targetIp);
-
-                                // Tell sender to send the file to the actual owner
-                                NameServerSender.unicastSend(senderIp, targetIp, filename);
-                            } else {
-                                System.out.printf("File '%s' is already owned by the reporting node %s%n", filename, senderIp);
-                            }
-
+                            // Tell sender to send the file to the actual owner
+                            //Todo: Respond with Ip and Port of the owner --> String ip, int port, String type, JSONObject data
+                            NameServerSender.sendUnicastMessage(senderIp, ownerIp, fileHash);
                         } else {
-                            System.out.printf("No replication of this node:", senderIp, filename);
+                            System.out.printf("File '%s' is already owned by the reporting node %s%n", senderIp);
                         }
+
                         break;
                 }
                 in.close();
@@ -79,6 +74,8 @@ public class NameServerUnicastReceiver extends Thread {
             e.printStackTrace();
         }
     }
+
+    //TODO: Move to node
 
     // Create a Log with information about on the file that's replicated
     private void logReplication(String filename, String nodeIp) {

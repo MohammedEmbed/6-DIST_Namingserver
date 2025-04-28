@@ -59,7 +59,7 @@ public class FileMonitor extends Thread {
                     }
                 }
 
-                Thread.sleep(3000); // Check for new files every 3 seconds
+                Thread.sleep(100); // Check for new files every 100 milliseconds
 
             } catch (InterruptedException e) {
                 System.err.println("FileMonitor interrupted.");

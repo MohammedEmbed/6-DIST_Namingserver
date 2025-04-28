@@ -30,6 +30,7 @@ public class NameServerSender {
     private static final int UNICAST_RECEIVE_PORT = 8081; // Node unicast listener port
 
     // TODO: lab5
+    @Deprecated
     public static void unicastSend(String sourceNodeIp, String targetNodeIp, String filename) {
         try (Socket socket = new Socket(sourceNodeIp, UNICAST_RECEIVE_PORT)) {
             JSONObject msg = new JSONObject();

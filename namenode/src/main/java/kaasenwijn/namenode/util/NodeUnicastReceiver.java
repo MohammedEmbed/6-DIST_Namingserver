@@ -89,13 +89,19 @@ public class NodeUnicastReceiver extends Thread {
                         }
                         break;
 
-                    // TODO: fix for lab5
-                    case "replication_request":
-                        String filename = data.getString("file");
-                        String targetIp = data.getString("to");
-                        System.out.printf("Received replication request → Send '%s' to %s%n", filename, targetIp);
-                        sendFileToNode(filename, targetIp);
+                    // TODO: Get file name from HashSet 'knownfiles' (fileMonitor)
+                    //
+                    case "replication_response":
+                        String filename = data.getString("fileHash");
+                        String targetIp = source.getString("ip");
+                        int targetPort = source.getInt("port");
+                        System.out.printf("Received replication response → Send '%s' to %s%n", filename, targetIp);
+                        NodeSender.sendFileToNode(filename, targetIp, targetPort);
                         break;
+
+                    case "file_replication": //The node RECEIVES a file from another node to be replicated on it.
+                        //TODO Get the file, save and log it
+
                 }
 
                 in.close();
@@ -108,74 +114,5 @@ public class NodeUnicastReceiver extends Thread {
         }
     }
 
-    // TODO: fix for lab5
-    // Sends file report to naming server via TCP
-    private void sendFileReportViaTCP(String namingServerIp, int port) {
-        try {
-            File folder = new File("files");
-            if (!folder.exists()) {
-                System.out.println("Local files folder does not exist.");
-                return;
-            }
 
-            JSONObject report = new JSONObject();
-            report.put("ip", nodeRepository.getSelfIp());
-
-            JSONObject files = new JSONObject();
-            for (File file : folder.listFiles()) {
-                if (!file.isFile()) continue;
-                String filename = file.getName();
-                int hash = NodeService.getHash(filename);
-                files.put(filename, hash);
-            }
-            report.put("files", files);
-
-            Socket socket = new Socket(namingServerIp, port);
-            OutputStream out = socket.getOutputStream();
-            out.write(report.toString().getBytes());
-            out.flush();
-            socket.close();
-
-            System.out.println("File report sent to naming server via TCP.");
-
-        } catch (Exception e) {
-            System.err.println("Failed to send TCP report to naming server:");
-            e.printStackTrace();
-        }
-    }
-
-    // TODO: fix for lab5
-    // Sends file to another node via HTTP POST
-    private void sendFileToNode(String filename, String targetIp) {
-        try {
-            File file = new File("files", filename);
-            if (!file.exists()) {
-                System.err.println("File not found: " + filename);
-                return;
-            }
-
-            URL url = new URL("http://" + targetIp + ":8080/api/node/files/replicate");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("File-Name", filename);
-            conn.setRequestProperty("Content-Type", "application/octet-stream");
-
-            try (OutputStream os = conn.getOutputStream();
-                 FileInputStream fis = new FileInputStream(file)) {
-                fis.transferTo(os);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("File '" + filename + "' successfully sent to " + targetIp);
-            } else {
-                System.err.println("Failed to send file to " + targetIp + " — HTTP " + responseCode);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error sending file to " + targetIp);
-            e.printStackTrace();
-        }
-    }
 }
