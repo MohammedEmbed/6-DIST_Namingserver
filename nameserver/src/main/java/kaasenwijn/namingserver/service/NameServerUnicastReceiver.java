@@ -15,7 +15,6 @@ public class NameServerUnicastReceiver extends Thread {
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
     private static final FileRepository fileRepository = FileRepository.getInstance();// filename → ownerIp
-    private static final String LOG_FILE = "replication_log.txt";
 
     @Override
     public void run() {
@@ -71,24 +70,6 @@ public class NameServerUnicastReceiver extends Thread {
                 clientSocket.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //TODO: Move to node
-
-    // Create a Log with information about on the file that's replicated
-    private void logReplication(String filename, String nodeIp) {
-        try (FileWriter fileWriter = new FileWriter(LOG_FILE, true);
-             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-             PrintWriter out = new PrintWriter(bufferedWriter)) {
-
-            String logEntry = String.format("Replicated file: %s → Owner: %s", filename, nodeIp);
-            out.println(logEntry);
-            System.out.println("Logged replication: " + logEntry);
-
-        } catch (IOException e) {
-            System.err.println("Failed to log replication.");
             e.printStackTrace();
         }
     }

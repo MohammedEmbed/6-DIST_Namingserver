@@ -3,6 +3,7 @@ package kaasenwijn.namenode.util;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.*;
 import java.net.*;
@@ -11,6 +12,7 @@ public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
+    private static final String LOG_DIR = "./";
 
     @Override
     public void run() {
@@ -111,6 +113,51 @@ public class NodeUnicastReceiver extends Thread {
         } catch (IOException e) {
             System.err.println("Error in UnicastReceiver: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Create a Log with information about on the file that's replicated
+     * The log is created upon reception of a new file
+     * @param filename name of the received file
+     * @param originalOwnerId hash of the original owner/source of the file
+     */
+    private void logReplication(String filename, String originalOwnerId) {
+        int fileHash = NodeService.getHash(filename);
+        String logFileName = LOG_DIR + "/replication_log_" + fileHash + ".json";
+        File logFile = new File(logFileName);
+
+        if (!logFile.exists()) {
+            JSONObject logData = new JSONObject();
+            logData.put("filename", filename);
+            logData.put("hash", fileHash);
+
+            JSONObject ownerInfo = new JSONObject();
+            ownerInfo.put("node_id", originalOwnerId);
+            logData.put("original_owner", ownerInfo);
+
+            JSONObject downloadedInfo = new JSONObject();
+            ownerInfo.put("node_id", nodeRepository.getCurrentId());
+            logData.put("downloaded_locations", downloadedInfo);
+
+            try (FileWriter fileWriter = new FileWriter(logFile);) {
+                fileWriter.write(logData.toString(2));
+                System.out.println("Created replication log: " + logFileName);
+            } catch (IOException e) {
+                System.err.println("Failed to create replication log: " + logFileName);
+                e.printStackTrace();
+            }
+        } else { // When the logfile already exists and this is just a new download of the file
+            try (FileReader fileReader = new FileReader(logFile);) {
+                JSONObject jsonObject = new JSONObject(new JSONTokener(fileReader));
+                jsonObject.getJSONObject("downloaded_locations").append("node_id", nodeRepository.getCurrentId());
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("Replication log already exists for file with hash: " + fileHash);
+
         }
     }
 
