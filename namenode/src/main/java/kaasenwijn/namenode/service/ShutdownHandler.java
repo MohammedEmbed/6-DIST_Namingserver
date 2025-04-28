@@ -33,7 +33,7 @@ public class ShutdownHandler {
 
                 if (nodeHasFileLocally(targetIp, filename)) {
                     System.out.printf(" Previous node (%s) already has '%s'. Finding next fallback...%n", targetIp, filename);
-                    Neighbor prevPrev = new Neighbor(NodeService.getNeighbours(prev.Id).getJSONObject("previous").getInt("id"));
+                    Neighbor prevPrev = new Neighbor(NodeService.getNeighbors(prev.Id).getJSONObject("previous").getInt("id"));
                     targetIp = prevPrev.getIp();
                 }
 

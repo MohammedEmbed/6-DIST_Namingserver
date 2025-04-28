@@ -1,6 +1,7 @@
 package kaasenwijn.namenode.model;
 
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.service.ApiService;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -10,6 +11,7 @@ import java.net.URL;
 
 public class Neighbor {
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
+    private final static ApiService apiService = new ApiService();
     public Integer Id;
 
 
@@ -49,6 +51,7 @@ public class Neighbor {
      */
     private String getIpFromNS() {
         // Send HTTP GET request to nameserver to receive ip of the node
+        apiService.get
         String namingServerIp = nodeRepository.getNamingServerIp();
         System.out.println("GET request for '" + this.Id + "' to " + namingServerIp);
         try {

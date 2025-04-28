@@ -17,6 +17,7 @@ import static kaasenwijn.namenode.util.Failure.handleFailure;
 @Service
 public class NodeService {
 
+    private final static ApiService apiService = new ApiService();
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
     public static void startUp(String ip, int port, String name) {
@@ -129,6 +130,9 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
+        //TODO: 1, Transfer ownership of all Replicated files to previous neighbor
+        //TODO: 2, Transfer log file to neighbor and update
+        //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> )
         System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
 
@@ -158,71 +162,20 @@ public class NodeService {
         }
 
         // Send HTTP DELETE request to nameserver to remove this node
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/" + currentName);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("DELETE request for '" + currentName + "' successfully sent to " + namingServerIp);
-            } else {
-                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
-            }
-
-            conn.disconnect();
-
-        } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
-            e.printStackTrace();
-        }
+        apiService.deleteNodeReqeust(currentName);
 
     }
 
-    public static JSONObject getNeighbours(int id) throws RuntimeException {
+    public static JSONObject getNeighbors(int currentId) throws RuntimeException{
 
-        // Send HTTP DELETE request to nameserver to remove this node
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
+        // Send HTTP GET request to nameserver
+        JSONObject neighbors = apiService.getNeighborsRequest(currentId);
 
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/nb/" + id);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                conn.disconnect();
-
-                // Parse JSON
-                String jsonString = response.toString();
-                return new JSONObject(jsonString);
-
-            } else {
-                System.out.println("GET request failed with response code: " + responseCode);
-                conn.disconnect();
-                throw new RuntimeException("HTTP communication with nameserver failed");
-            }
-
-
-        } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
-            e.printStackTrace();
+        if(neighbors!=null){
+            return neighbors;
+        }else{
             throw new RuntimeException();
         }
-
 
     }
 

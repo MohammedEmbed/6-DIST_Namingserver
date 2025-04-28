@@ -45,7 +45,7 @@ public class Failure {
 
     public static void handleFailure(int hash){
         // Request prev and next node parameters of failed node from NS
-        JSONObject nbData = NodeService.getNeighbours(hash);
+        JSONObject nbData = NodeService.getNeighbors(hash);
         JSONObject next = nbData.getJSONObject("next");
         JSONObject prev = nbData.getJSONObject("previous");
 
