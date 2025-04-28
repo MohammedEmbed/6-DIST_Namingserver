@@ -1,5 +1,6 @@
 package kaasenwijn.namingserver.service;
 
+import kaasenwijn.namingserver.repository.FileRepository;
 import kaasenwijn.namingserver.repository.IpRepository;
 import kaasenwijn.namingserver.repository.NodeRepository;
 import org.json.JSONObject;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 public class NameServerUnicastReceiver extends Thread {
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
-    private static final HashMap<String, String> fileOwnership = new HashMap<>(); // filename → ownerIp
+    private static final FileRepository fileRepository = FileRepository.getInstance();// filename → ownerIp
     private static final String LOG_FILE = "replication_log.txt";
 
     @Override
@@ -55,8 +56,8 @@ public class NameServerUnicastReceiver extends Thread {
                         if (!ownerIp.equals(senderIp)) {
                             System.out.printf("Node %s should replicate '%s' to new owner %s%n", senderIp, ownerIp);
 
-                            //TODO: Make the fileownership hashset persistant
-                            fileOwnership.put(fileHash, ownerId);
+                            //fileownership hashset is now persistant --> FIXED
+                            fileRepository.register(fileHash, ownerIp);
 
                             // Tell sender to send the file to the actual owner
                             //Todo: Respond with Ip and Port of the owner --> String ip, int port, String type, JSONObject data
