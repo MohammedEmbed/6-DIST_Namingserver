@@ -25,8 +25,7 @@ public class NameService {
         return (int) Math.floor(result);
     }
 
-    public static Integer getNodeId(String filename){
-        Integer fileId = getHash(filename);
+    public static Integer getNodeId(Integer fileHash){
         boolean isEmpty=true;
         Integer owner = 0;
         Integer largest = 0;
@@ -34,7 +33,7 @@ public class NameService {
             if(nodeId > largest){
                 largest = nodeId;
             }
-            if(nodeId < fileId && nodeId > owner){
+            if(nodeId < fileHash && nodeId > owner){
                 owner = nodeId;
                 isEmpty=false;
             }
