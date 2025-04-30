@@ -21,7 +21,8 @@ public class NodeUnicastReceiver extends Thread {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                InputStream inputStream = clientSocket.getInputStream();
+                BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
 
                 StringBuilder messageBuilder = new StringBuilder();
                 String line;
@@ -89,18 +90,23 @@ public class NodeUnicastReceiver extends Thread {
                         }
                         break;
 
-                    // TODO: Get file name from HashSet 'knownfiles' (fileMonitor)
-                    //
+
                     case "replication_response":
-                        String filename = data.getString("fileHash");
+                        String fileHash = data.getString("fileHash");
+                        // TODO: Get file name from HashSet 'knownfiles' (fileMonitor)
+                        String filename = "testfile.txt";
                         String targetIp = source.getString("ip");
                         int targetPort = source.getInt("port");
-                        System.out.printf("Received replication response → Send '%s' to %s%n", filename, targetIp);
-                        NodeSender.sendFileToNode(filename, targetIp, targetPort);
+                        System.out.printf("[replication_response] Received replication response → Send '%s' to %s%n", filename, targetIp);
+                        NodeSender.sendFile(targetIp,targetPort,filename);
                         break;
 
                     case "file_replication": //The node RECEIVES a file from another node to be replicated on it.
-                        //TODO Get the file, save and log it
+                        String fileName = data.getString("fileName");
+                        receiveFile(inputStream, fileName);
+                        System.out.printf("[file_replication] file %s received from %s : %s",fileName,source.getString("ip"),source.getInt("port"));
+                        // TODO: logging
+                        break;
 
                 }
 
@@ -114,5 +120,19 @@ public class NodeUnicastReceiver extends Thread {
         }
     }
 
+    public static void receiveFile(InputStream in, String fileName) throws IOException {
+
+        FileOutputStream fos = new FileOutputStream("client/"+fileName);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            bos.write(buffer, 0, bytesRead);
+        }
+
+        bos.flush();
+        System.out.println("File received successfully!");
+    }
 
 }

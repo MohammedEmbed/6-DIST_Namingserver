@@ -1,8 +1,6 @@
 package kaasenwijn.namenode.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 
 import kaasenwijn.namenode.repository.NodeRepository;
@@ -146,5 +144,43 @@ public class NodeSender {
         messageObj.put("port", nodeRepository.getSelfPort());
         return messageObj;
     }
+
+
+    public static void sendFile(String ip, int port, String filename) throws IOException {
+        Socket socket = new Socket(ip, port);
+        // TODO: choose correct location
+        File myFile = new File("local_files/" + filename);
+        if (!myFile.exists() || myFile.length() == 0) {
+            System.out.println("File doesn't exist!");
+        } else {
+            // First send the name
+            JSONObject fileData = new JSONObject();
+            fileData.put("fileName",filename);
+            JSONObject unicastMessageObj = createObject("file_replication", fileData);
+            byte[] buf = unicastMessageObj.toString().getBytes(); // the message we want to send turned into bytes
+
+            OutputStream out = socket.getOutputStream();
+            out.write(buf);
+
+            // Then send the file
+            FileInputStream fis = new FileInputStream(myFile);
+            BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+            fis.close();
+            bos.flush();
+            bos.close();
+            System.out.println("File sent successfully!");
+        }
+    }
+
+
 }
+
+
+
 

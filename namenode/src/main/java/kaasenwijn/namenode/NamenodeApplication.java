@@ -36,12 +36,13 @@ public class NamenodeApplication {
         Random rand = new Random();
         Thread.sleep(4500 + rand.nextInt(500));
         NodeSender.sendMulticastMessage("bootstrap");
-        Thread.sleep(rand.nextInt(500));
-        NodeSender.sendMulticastMessage("bootstrap");
-        Thread.sleep(rand.nextInt(500));
-        NodeSender.sendMulticastMessage("bootstrap");
-        Thread.sleep(rand.nextInt(500));
-        NodeSender.sendMulticastMessage("bootstrap");
+        // TODO: enable again after debuggin
+//        Thread.sleep(rand.nextInt(500));
+//        NodeSender.sendMulticastMessage("bootstrap");
+//        Thread.sleep(rand.nextInt(500));
+//        NodeSender.sendMulticastMessage("bootstrap");
+//        Thread.sleep(rand.nextInt(500));
+//        NodeSender.sendMulticastMessage("bootstrap");
 
 
         // Register a Shutdown hook
@@ -60,7 +61,8 @@ public class NamenodeApplication {
         };
 
         // Schedule the task to run every 20 seconds with no initial delay
-        scheduler.scheduleAtFixedRate(task, 0, 20, TimeUnit.SECONDS);
+        // TODO: enable health-check again, commented out for debugging
+        // scheduler.scheduleAtFixedRate(task, 0, 20, TimeUnit.SECONDS);
     }
 
 }

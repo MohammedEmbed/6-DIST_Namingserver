@@ -41,12 +41,11 @@ public class NameServerUnicastReceiver extends Thread {
                 switch (type){
                     // TODO: lab 5
                     case "replication":
-                        //TODO: Make a list of all files of a node
                         int nodeHash = data.getInt("nodeHash");      // hash of the node that sent the replication
                         int fileHash = data.getInt("fileHash");      // hash of the file
                         String senderIp = source.getString("ip");    // IP of the sender (originating node)
 
-                        System.out.printf("Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
+                        System.out.printf("[replication] Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
                                 senderIp, fileHash, nodeHash);
 
                         int ownerId = NameService.getNodeId(fileHash);// Where it needs to replicate to

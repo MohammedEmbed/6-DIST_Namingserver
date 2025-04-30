@@ -180,6 +180,9 @@ public class NodeService {
             e.printStackTrace();
         }
 
+
+
+
     }
 
     public static JSONObject getNeighbours(int id) throws RuntimeException {
@@ -218,7 +221,7 @@ public class NodeService {
 
 
         } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
+            System.err.println("Error GET request to " + namingServerIp);
             e.printStackTrace();
             throw new RuntimeException();
         }
