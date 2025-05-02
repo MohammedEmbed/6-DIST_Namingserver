@@ -16,6 +16,7 @@ public class NameServerUnicastReceiver extends Thread {
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
     private static final FileRepository fileRepository = FileRepository.getInstance();// filename → ownerIp
 
+
     @Override
     public void run() {
         try  {
@@ -39,29 +40,32 @@ public class NameServerUnicastReceiver extends Thread {
                 JSONObject source = json.getJSONObject("source");
 
                 switch (type){
-                    // TODO: lab 5
                     case "replication":
                         int nodeHash = data.getInt("nodeHash");      // hash of the node that sent the replication
-                        int fileHash = data.getInt("fileHash");      // hash of the file
+                        int fileHash = data.getInt("fileHash");
                         String senderIp = source.getString("ip");    // IP of the sender (originating node)
+                        int senderPort = source.getInt("port");
+                        System.out.printf("[replication] Received unicast from %s: %s (hash=%d), nodeHash=%d%n", senderIp, senderPort, fileHash, nodeHash);
 
-                        System.out.printf("[replication] Received unicast from %s: %s (hash=%d), nodeHash=%d%n",
-                                senderIp, fileHash, nodeHash);
-
-                        int ownerId = NameService.getNodeId(fileHash);// Where it needs to replicate to
-                        String ownerIp = IpRepository.getInstance().getIp(ownerId);// Ip of the owner (target)
-
+                        int ownerId = NameService.getFileOwnerId(fileHash, nodeHash);// Where it needs to replicate to
+                        String ownerIpAndPort = IpRepository.getInstance().getIp(ownerId);// Ip of the owner (target)
+                        String[] parts = ownerIpAndPort.split(":");
+                        String ownerIp = parts[0];
+                        int ownerPort = Integer.parseInt(parts[1]);
                         if (!ownerIp.equals(senderIp)) {
-                            System.out.printf("Node %s should replicate '%s' to new owner %s%n", senderIp, ownerIp);
+                            System.out.printf("[replication] Node %s should replicate '%s' to new owner %s", senderIp, fileHash,ownerIp);
 
                             //fileownership hashset is now persistant --> FIXED
                             fileRepository.register(fileHash, ownerIp);
 
                             // Tell sender to send the file to the actual owner
-                            //Todo: Respond with Ip and Port of the owner --> String ip, int port, String type, JSONObject data
-                            NameServerSender.sendUnicastMessage(senderIp, ownerIp, fileHash);
+                            JSONObject resData = new JSONObject();
+                            resData.put("fileHash",fileHash);
+                            resData.put("ownerIp",ownerIp);
+                            resData.put("ownerPort",ownerPort);
+                            NameServerSender.sendUnicastMessage(senderIp, senderPort, "replication_response", resData);
                         } else {
-                            System.out.printf("File '%s' is already owned by the reporting node %s%n", senderIp);
+                            System.out.printf("[replication] File '%s' is already owned by the reporting node %s%n",fileHash, senderIp);
                         }
 
                         break;

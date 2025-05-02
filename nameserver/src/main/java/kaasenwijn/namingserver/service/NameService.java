@@ -25,20 +25,18 @@ public class NameService {
         return (int) Math.floor(result);
     }
 
-    public static Integer getNodeId(Integer fileHash){
-        boolean isEmpty=true;
-        Integer owner = 0;
-        Integer largest = 0;
+    public static Integer getFileOwnerId(Integer fileHash, int senderId){
+        int best = senderId;
+        int largest = senderId;
         for(Integer nodeId : IpRepository.getAllIds()){
+            if(nodeId < fileHash && nodeId != senderId){
+                best =nodeId;
+            }
             if(nodeId > largest){
                 largest = nodeId;
             }
-            if(nodeId < fileHash && nodeId > owner){
-                owner = nodeId;
-                isEmpty=false;
-            }
         }
-        return isEmpty ? largest : owner;
+        return best==senderId ? largest : best;
     }
 
     public static void startUp(String ip,int port,String name){

@@ -12,7 +12,10 @@ public class NodeStructure {
 
     public String namingServerIp;
 
+    public int namingServerPort;
+
     public String name;
+
 
 
 }

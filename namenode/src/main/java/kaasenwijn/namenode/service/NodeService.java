@@ -28,10 +28,6 @@ public class NodeService {
         repo.setName(name);
         repo.setNext(id);
         repo.setPrevious(id);
-
-        // TODO: fix for lab5, currently makes the server crash
-        // verifyLocalFiles();
-        // reportLocalFilesToNamingServer();
     }
 
     /**
@@ -73,44 +69,6 @@ public class NodeService {
             data.put("next_id", nodeRepository.getCurrentId());
         }
         return data;
-    }
-
-    // TODO: lab5
-    public static void verifyLocalFiles() {
-        /*
-        De files voor elke node moeten momenteel bijgehouden worden in het mapje files.
-        de folder (lijn hier onder) kijkt op die map en lijst de files op die erin zetten.
-
-        Dan extra is nog kort alle local files printen (ter info mag eigenlijk weg)
-         */
-        File folder = new File("files");
-        File[] files = folder.listFiles();
-
-        //Print out local files
-        System.out.println("Local files:");
-        for (File file : files) {
-            if (file.isFile()) {
-                System.out.println("- " + file.getName());
-            }
-        }
-    }
-
-    // TODO: lab5
-    public static void reportLocalFilesToNamingServer() {
-        File folder = new File(System.getProperty("user.dir") + File.separator + "files");
-        if (!folder.exists()) return;
-
-        NodeRepository repo = NodeRepository.getInstance(); //Instantie opvragen
-        String selfIp = repo.getSelfIp(); //Vraag Ip op
-
-        for (File file : folder.listFiles()) { //Lijst alle files van de node op
-            if (!file.isFile()) continue;
-
-            String filename = file.getName();
-            int fileHash = getHash(filename); //Bereken hun hashes
-
-
-        }
     }
 
     public static boolean shouldDrop(JSONObject packet) {

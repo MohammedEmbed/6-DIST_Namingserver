@@ -29,6 +29,7 @@ public class NodeUnicastReceiver extends Thread {
                 StringBuilder messageBuilder = new StringBuilder();
                 String line;
                 while ((line = in.readLine()) != null) {
+                    if (line.equals("END")) break;
                     messageBuilder.append(line);
                 }
 
@@ -58,11 +59,6 @@ public class NodeUnicastReceiver extends Thread {
                         System.out.println("[welcome] nextid: " + nodeRepository.getNextId() + " , previousid: " + nodeRepository.getPreviousId());
 
                         // If the count is not 1, it wil receive messages from other nodes to update prev and next id
-
-                        // TODO: is this for lab5?
-                        // TODO: Replace with actual IP
-                        // Reply with local file report
-                        //sendFileReportViaTCP("<NAMING_SERVER_IP>", UNICAST_SENDER_PORT);
                         break;
 
                     case "update_ids":
@@ -94,19 +90,19 @@ public class NodeUnicastReceiver extends Thread {
 
 
                     case "replication_response":
-                        String fileHash = data.getString("fileHash");
+                        int fileHash = data.getInt("fileHash");
                         // TODO: Get file name from HashSet 'knownfiles' (fileMonitor)
                         String filename = "testfile.txt";
-                        String targetIp = source.getString("ip");
-                        int targetPort = source.getInt("port");
-                        System.out.printf("[replication_response] Received replication response → Send '%s' to %s%n", filename, targetIp);
+                        String targetIp = data.getString("ownerIp");
+                        int targetPort = data.getInt("ownerPort");
+                        System.out.printf("[replication_response] Received replication response → Send '%s' to %s%n \n", filename, targetIp);
                         NodeSender.sendFile(targetIp,targetPort,filename);
                         break;
 
                     case "file_replication": //The node RECEIVES a file from another node to be replicated on it.
                         String fileName = data.getString("fileName");
+                        System.out.printf("[file_replication] file %s received from %s : %s \n",fileName,source.getString("ip"),source.getInt("port"));
                         receiveFile(inputStream, fileName);
-                        System.out.printf("[file_replication] file %s received from %s : %s",fileName,source.getString("ip"),source.getInt("port"));
                         // TODO: logging
                         break;
 
@@ -124,7 +120,7 @@ public class NodeUnicastReceiver extends Thread {
 
     public static void receiveFile(InputStream in, String fileName) throws IOException {
 
-        FileOutputStream fos = new FileOutputStream("client/"+fileName);
+        FileOutputStream fos = new FileOutputStream("replicated_files_"+nodeRepository.getName()+"/"+fileName);
         BufferedOutputStream bos = new BufferedOutputStream(fos);
 
         byte[] buffer = new byte[4096];

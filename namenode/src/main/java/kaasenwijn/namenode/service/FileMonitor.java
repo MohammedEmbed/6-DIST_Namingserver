@@ -12,12 +12,7 @@ import java.util.Set;
 public class FileMonitor extends Thread {
 
     private final Set<String> knownFiles = new HashSet<>();
-    private final File folder = new File("files"); // TODO: Update this to the correct path if needed
-    private final String nodeName;
-
-    public FileMonitor(String nodeName) {
-        this.nodeName = nodeName;
-    }
+    private final File folder = new File("local_files_"+NodeRepository.getInstance().getName());
 
     @Override
     public void run() {
@@ -42,14 +37,14 @@ public class FileMonitor extends Thread {
                                 data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
 
                                 // Send replication request to the naming server
-                                // TODO: Warre FIX: Could use some finetuning
                                 try {
                                     NodeSender.sendUnicastMessage(
                                             NodeRepository.getInstance().getNamingServerIp(),
-                                            8090,
+                                            NodeRepository.getInstance().getNamingServerPort(),
                                             "replication",
                                             data
                                     );
+                                    System.out.printf("[File monitor] send replication request by node for file %s \n", filename);
                                 } catch (CommunicationException e) {
                                     System.err.println("Failed to send replication request for file: " + filename);
                                     e.printStackTrace();
