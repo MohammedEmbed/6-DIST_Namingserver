@@ -12,6 +12,7 @@ public class ShutdownHandler {
 
     private static final NodeRepository repo = NodeRepository.getInstance();
     private static final File REPLICATION_LOG = new File("replication_log.txt"); // TODO: Eventueel naar persistent storage veranderen, Map<> mss?
+    private final static ApiService apiService = new ApiService();
 
     public static void transferReplicatedFilesOnShutdown() {
         if (!REPLICATION_LOG.exists()) {
@@ -47,18 +48,7 @@ public class ShutdownHandler {
     }
 
     private static boolean nodeHasFileLocally(String nodeIp, String filename) {
-        try {
-            URL url = new URL("http://" + nodeIp + ":8080/api/node/files/has/" + filename);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(1000);
-            conn.setReadTimeout(1000);
-
-            return conn.getResponseCode() == 200;
-        } catch (Exception e) {
-            System.err.println("Failed to check if node " + nodeIp + " has file " + filename);
-            return false;
-        }
+        return apiService.checkFileRequest(nodeIp, filename);
     }
 
     private static void sendFileToNode(String filename, String targetIp) {
@@ -68,24 +58,10 @@ public class ShutdownHandler {
                 System.err.println("File not found: " + filename);
                 return;
             }
+            apiService.postFileRequest(filename,file, targetIp);
 
-            URL url = new URL("http://" + targetIp + ":8080/api/node/files/replicate");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("File-Name", filename);
-            conn.setRequestProperty("Content-Type", "application/octet-stream");
 
-            try (OutputStream os = conn.getOutputStream(); FileInputStream fis = new FileInputStream(file)) {
-                fis.transferTo(os);
-            }
 
-            int code = conn.getResponseCode();
-            if (code == 200) {
-                System.out.printf("'%s' transferred to %s%n", filename, targetIp);
-            } else {
-                System.err.printf("Failed to send '%s' to %s — HTTP %d%n", filename, targetIp, code);
-            }
 
         } catch (Exception e) {
             System.err.println("Error sending file " + filename + " to " + targetIp);

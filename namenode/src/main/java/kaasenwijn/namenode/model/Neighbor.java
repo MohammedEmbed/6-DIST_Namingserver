@@ -51,35 +51,14 @@ public class Neighbor {
      */
     private String getIpFromNS() {
         // Send HTTP GET request to nameserver to receive ip of the node
-        apiService.get
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        System.out.println("GET request for '" + this.Id + "' to " + namingServerIp);
-        try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/ip/" + this.Id);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("GET request for '" + this.Id + "' successfully sent to " + namingServerIp);
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
+        JSONObject json = apiService.getNodeIpRequest(this.Id);
 
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                JSONObject json = new JSONObject(response.toString());
-                return json.getString("ip");
-            } else {
-                System.err.println("Failed to send GET request to " + namingServerIp + " — HTTP " + responseCode);
-            }
-        } catch (Exception e) {
-            System.err.println("Error GET request to " + namingServerIp);
-            e.printStackTrace();
+        if (json != null) {
+            return json.getString("ip");
+        } else {
+            throw new RuntimeException();
         }
-        return null;
+
     }
+
 }

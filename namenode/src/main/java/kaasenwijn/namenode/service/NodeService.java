@@ -8,8 +8,6 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Objects;
 
 import static kaasenwijn.namenode.util.Failure.handleFailure;
@@ -132,7 +130,7 @@ public class NodeService {
     public static void shutdown() {
         //TODO: 1, Transfer ownership of all Replicated files to previous neighbor
         //TODO: 2, Transfer log file to neighbor and update
-        //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> )
+        //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
         System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
 
@@ -162,7 +160,7 @@ public class NodeService {
         }
 
         // Send HTTP DELETE request to nameserver to remove this node
-        apiService.deleteNodeReqeust(currentName);
+        apiService.deleteNodeRequest(currentName);
 
     }
 

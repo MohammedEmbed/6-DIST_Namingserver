@@ -4,8 +4,7 @@ import kaasenwijn.namenode.repository.NodeRepository;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -13,20 +12,16 @@ import java.net.URL;
 public class ApiService {
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
-    private int sendServerDeleteRequest(String namingServerIp, String path, String type){
+    private int sendServerDeleteRequest(String namingServerIp, String path){
 
         try {
             URL url = new URL("http://" + namingServerIp + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            switch (type) {
-                case "DELETE", "GET", "POST" -> {
-                    conn.setDoOutput(true);
-                    conn.setRequestMethod(type);
-                    conn.setRequestProperty("Content-Type", "application/json");
-                }
+            conn.setDoOutput(true);
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Content-Type", "application/json");
 
-                default-> throw new IllegalStateException("Unexpected type: " + type);
-            }
+
 
             int responseCode = conn.getResponseCode();
             conn.disconnect();
@@ -34,18 +29,18 @@ public class ApiService {
 
         } catch (Exception e) {
 
-            System.err.println("Error " + type + " request to " + namingServerIp);
+            System.err.println("Error: failed DELETE request to " + namingServerIp);
             e.printStackTrace();
             return 500;
         }
     }
-    private JSONObject sendServerGetRequest(String namingServerIp, String path, String type){
+    private JSONObject sendServerGetRequest(String namingServerIp, String path){
 
         try {
             URL url = new URL("http://" + namingServerIp + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
-            conn.setRequestMethod(type);
+            conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-Type", "application/json");
 
             int responseCode = conn.getResponseCode();
@@ -65,35 +60,116 @@ public class ApiService {
                 return new JSONObject(jsonString);
 
             } else {
-                System.out.println("Error: "+type+" request failed with response code: " + responseCode);
+                System.out.println("Error: failed GET request with response code: " + responseCode);
                 conn.disconnect();
             }
 
 
         } catch (Exception e) {
-            System.err.println("Error: "+type+ " request to " + namingServerIp);
+            System.err.println("Error: failed GET request to " + namingServerIp);
             e.printStackTrace();
         }
         return null;
     }
 
-    public void deleteNodeReqeust(String currentName) {
+    private int sendServerPostRequest(String filename, File file, String targetIp, String path){
+        try {
+            URL url = new URL("http://" + targetIp + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("File-Name", filename);
+            conn.setRequestProperty("Content-Type", "application/octet-stream");
+
+            try (OutputStream os = conn.getOutputStream(); FileInputStream fis = new FileInputStream(file)) {
+                fis.transferTo(os);
+            }
+
+            int responseCode = conn.getResponseCode();
+            conn.disconnect();
+            return responseCode;
+
+        }catch(Exception e){
+            System.err.println("Error: failed POST request to " + targetIp);
+            e.printStackTrace();
+            return 500;
+        }
+    }
+
+    public void deleteNodeRequest(String currentName) {
         String namingServerIp = nodeRepository.getNamingServerIp();
         String path = ":8080/api/node/" + currentName;
-        int responseCode = sendServerDeleteRequest(namingServerIp, path, "DELETE");
+        int responseCode = sendServerDeleteRequest(namingServerIp, path);
         if (responseCode == 200) {
             System.out.println("DELETE request for '" + currentName + "' successfully sent to " + namingServerIp);
 
         } else {
-            System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
+            System.err.println("Error: failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
 
+        }
+    }
+    public void deleteNodeRequestFromHash(int hash){
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        try {
+            URL url = new URL("http://" + namingServerIp + ":8080/api/node/hash/" + hash);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                System.out.println("DELETE request for hash'" +hash  + "' successfully sent to " + namingServerIp);
+            } else {
+                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
+            }
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            System.err.println("Error DELETE request to " + namingServerIp);
+            e.printStackTrace();
         }
     }
 
     public JSONObject getNeighborsRequest(int currentId){
         String namingServerIp = nodeRepository.getNamingServerIp();
         String path = ":8080/api/node/nb/" + currentId;
-        return sendServerGetRequest(namingServerIp,path,"GET");
+        return sendServerGetRequest(namingServerIp,path);
     }
+
+
+    public JSONObject getNodeIpRequest(int currentId){
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        String path = ":8080/api/node/ip/" + currentId;
+        return sendServerGetRequest(namingServerIp,path);
+    }
+
+    public void postFileRequest(String filename,File file, String targetIp){
+        String path = ":8080/api/node/files/replicate";
+        int responseCode = sendServerPostRequest(filename, file, targetIp, path);
+        if (responseCode == 200) {
+            System.out.println(filename +"POST request successfully transferred "+ filename +" to "+targetIp);
+        } else {
+            System.err.println("Error: failed to send POST request of " + filename + " to " + targetIp + " — HTTP " + responseCode);
+        }
+    }
+
+    public boolean checkFileRequest(String nodeIp, String filename){
+        try {
+            URL url = new URL("http://" + nodeIp + ":8080/api/node/files/has/" + filename);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(1000);
+            conn.setReadTimeout(1000);
+
+            return conn.getResponseCode() == 200;
+        } catch (Exception e) {
+            System.err.println("Failed to check if node " + nodeIp + " has file " + filename);
+            return false;
+        }
+    }
+
+
 
 }
