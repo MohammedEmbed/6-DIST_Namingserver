@@ -12,7 +12,6 @@ public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
-    private static final String LOG_DIR = "./";
 
     @Override
     public void run() {
@@ -141,7 +140,7 @@ public class NodeUnicastReceiver extends Thread {
      */
     private void logReplication(String filename, int originalOwnerId) {
         int fileHash = NodeService.getHash(filename);
-        String logFileName = LOG_DIR + "/replication_log_" + fileHash + ".json";
+        String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + fileHash + ".json";
         File logFile = new File(logFileName);
 
         if (!logFile.exists()) {
