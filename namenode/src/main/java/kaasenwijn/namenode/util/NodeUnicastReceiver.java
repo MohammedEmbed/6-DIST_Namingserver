@@ -103,7 +103,7 @@ public class NodeUnicastReceiver extends Thread {
                         String fileName = data.getString("fileName");
                         System.out.printf("[file_replication] file %s received from %s : %s \n",fileName,source.getString("ip"),source.getInt("port"));
                         receiveFile(inputStream, fileName);
-                        // TODO: logging
+                        logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
 
                 }
@@ -139,7 +139,7 @@ public class NodeUnicastReceiver extends Thread {
      * @param filename name of the received file
      * @param originalOwnerId hash of the original owner/source of the file
      */
-    private void logReplication(String filename, String originalOwnerId) {
+    private void logReplication(String filename, int originalOwnerId) {
         int fileHash = NodeService.getHash(filename);
         String logFileName = LOG_DIR + "/replication_log_" + fileHash + ".json";
         File logFile = new File(logFileName);
