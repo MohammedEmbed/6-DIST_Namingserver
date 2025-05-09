@@ -62,4 +62,12 @@ public class FileMonitor extends Thread {
             }
         }
     }
+    public static Set<String> getKnownFiles() {
+        return FileMonitorHolder.INSTANCE.knownFiles;
+    }
+
+    // Singleton holder pattern
+    private static class FileMonitorHolder {
+        private static final FileMonitor INSTANCE = new FileMonitor();
+    }
 }

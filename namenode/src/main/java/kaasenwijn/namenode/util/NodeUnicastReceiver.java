@@ -1,6 +1,7 @@
 package kaasenwijn.namenode.util;
 
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -12,6 +13,7 @@ public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
+
 
     @Override
     public void run() {
@@ -90,12 +92,21 @@ public class NodeUnicastReceiver extends Thread {
 
                     case "replication_response":
                         int fileHash = data.getInt("fileHash");
-                        // TODO: Get file name from HashSet 'knownfiles' (fileMonitor)
-                        String filename = "testfile.txt";
+                        String filename = null;
+                        for (String knownFile : FileMonitor.getKnownFiles()) {
+                            if (NodeService.getHash(knownFile) == fileHash) {
+                                filename = knownFile;
+                                break;
+                            }
+                        }
                         String targetIp = data.getString("ownerIp");
                         int targetPort = data.getInt("ownerPort");
-                        System.out.printf("[replication_response] Received replication response → Send '%s' to %s%n \n", filename, targetIp);
-                        NodeSender.sendFile(targetIp,targetPort,filename);
+                        if (filename != null) {
+                            System.out.println("[replication_response] Received replication response → Send" + filename + "to " + targetIp);
+                            NodeSender.sendFile(targetIp,targetPort,filename);
+                        } else {
+                            System.err.printf("[replication_response] File with hash %d not found in known files.\n", fileHash);
+                        }
                         break;
 
                     case "file_replication": //The node RECEIVES a file from another node to be replicated on it.
