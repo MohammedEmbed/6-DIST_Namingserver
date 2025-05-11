@@ -77,7 +77,7 @@ public class NodeSender {
     public static void sendFile(String ip, int port, String filename) throws IOException {
         Socket socket = new Socket(ip, port);
         File myFile = new File("local_files_"+NodeRepository.getInstance().getName()+"/" + filename);
-        if (!myFile.exists() || myFile.length() == 0) {
+        if (!myFile.exists()) {
             System.out.println("File doesn't exist!");
         } else {
             // First send the name

@@ -8,6 +8,8 @@ import org.json.JSONTokener;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
@@ -40,7 +42,6 @@ public class NodeUnicastReceiver extends Thread {
                 // Contains ip, port and name of sender
                 JSONObject source = json.getJSONObject("source");
                 JSONObject data = json.getJSONObject("data");
-
                 switch (type) {
                     case "health-check":
                         // We just want to test if the node is alive, we don't need to respond explicitly
@@ -92,17 +93,11 @@ public class NodeUnicastReceiver extends Thread {
 
                     case "replication_response":
                         int fileHash = data.getInt("fileHash");
-                        String filename = null;
-                        for (String knownFile : FileMonitor.getKnownFiles()) {
-                            if (NodeService.getHash(knownFile) == fileHash) {
-                                filename = knownFile;
-                                break;
-                            }
-                        }
+                        String filename = FileMonitor.getKnownFiles().get(fileHash);
                         String targetIp = data.getString("ownerIp");
                         int targetPort = data.getInt("ownerPort");
                         if (filename != null) {
-                            System.out.println("[replication_response] Received replication response → Send" + filename + "to " + targetIp);
+                            System.out.println("[replication_response] Received replication response => Send " + filename + " to " + targetIp);
                             NodeSender.sendFile(targetIp,targetPort,filename);
                         } else {
                             System.err.printf("[replication_response] File with hash %d not found in known files.\n", fileHash);
@@ -110,11 +105,24 @@ public class NodeUnicastReceiver extends Thread {
                         break;
 
                     case "file_replication": //The node RECEIVES a file from another node to be replicated on it.
+
                         String fileName = data.getString("fileName");
                         System.out.printf("[file_replication] file %s received from %s : %s \n",fileName,source.getString("ip"),source.getInt("port"));
                         receiveFile(inputStream, fileName);
                         logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
+
+
+                    case "file_replication_deletion":
+
+                        String fileName2 = data.getString("fileName");
+                        System.out.printf("[file_replication_deletion] file %s received from %s : %s \n",fileName2,source.getString("ip"),source.getInt("port"));
+                        String filePath = "replicated_files_"+nodeRepository.getName()+"/"+fileName2;
+                        deleteFile(filePath);
+                        String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + NodeService.getHash(fileName2) + ".json";
+                        deleteFile(logFileName);
+                        break;
+
 
                 }
 
@@ -140,8 +148,26 @@ public class NodeUnicastReceiver extends Thread {
         }
 
         bos.flush();
+        bos.close();
         System.out.println("File received successfully!");
     }
+
+    public static void deleteFile(String path) {
+
+       try{
+
+           Files.deleteIfExists(Path.of(path));
+
+               System.out.println("[Delete file] File with name "+path+" was deleted successfully.");
+
+       }catch (Exception e){
+           e.printStackTrace();
+           System.out.println("[Delete file] File with name "+path+" could not be deleted.");
+
+       }
+    }
+
+
 
     /**
      * Create a Log with information about on the file that's replicated

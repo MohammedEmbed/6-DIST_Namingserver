@@ -6,12 +6,14 @@ import kaasenwijn.namenode.util.NodeSender;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class FileMonitor extends Thread {
 
-    private final Set<String> knownFiles = new HashSet<>();
+    private  final HashMap<Integer,String>  knownFiles = new HashMap<Integer,String>();
     private final File folder = new File("local_files_"+NodeRepository.getInstance().getName());
 
     @Override
@@ -20,13 +22,20 @@ public class FileMonitor extends Thread {
 
         while (true) {
             try {
+                HashMap<Integer,Boolean> paintMap = new HashMap<>();
+                for(int key : knownFiles.keySet()){
+                    paintMap.put(key, false);
+                }
+
                 if (folder.exists() && folder.isDirectory()) { // Does the folder exist?
                     File[] files = folder.listFiles(); // List all files
                     if (files != null) { // Are there any files?
                         for (File file : files) { // Loop through all files
-                            if (file.isFile() && !knownFiles.contains(file.getName())) { // Is this a new file?
+                            int fileHash = NodeService.getHash(file.getName());
+                            paintMap.put(fileHash, true);
+                            if (file.isFile() && !knownFiles.containsKey(fileHash)) { // Is this a new file?
                                 String filename = file.getName();
-                                knownFiles.add(filename);
+                                knownFiles.put(fileHash,filename);
 
                                 System.out.println("Detected new file: " + filename);
 
@@ -50,20 +59,39 @@ public class FileMonitor extends Thread {
                                     e.printStackTrace();
                                 }
                             }
+
+                        }
+                        // Send delete request for each not painted file
+                        for (int key: paintMap.keySet()) {
+                            if(!paintMap.get(key)){
+                                // New location
+                                System.out.println("[File monitor] Deleted file discover: send replication delete request");
+                                JSONObject data = NodeService.getFileReplicationLocation(key);
+                                JSONObject toSendData = new JSONObject();
+                                toSendData.put("fileName",knownFiles.get(key));
+                                NodeSender.sendUnicastMessage(data.getString("ip"), data.getInt("port"),"file_replication_deletion", toSendData);
+                                knownFiles.remove(key);
+                            }
                         }
                     }
                 }
 
-                Thread.sleep(100); // Check for new files every 100 milliseconds
+                Thread.sleep(10000); // Check for new files every 100 milliseconds
 
             } catch (InterruptedException e) {
                 System.err.println("FileMonitor interrupted.");
                 break;
+            } catch (CommunicationException e) {
+                throw new RuntimeException(e);
             }
         }
     }
-    public static Set<String> getKnownFiles() {
+    public static HashMap<Integer,String> getKnownFiles() {
         return FileMonitorHolder.INSTANCE.knownFiles;
+    }
+
+    public static FileMonitor getInstance() {
+        return FileMonitorHolder.INSTANCE;
     }
 
     // Singleton holder pattern
