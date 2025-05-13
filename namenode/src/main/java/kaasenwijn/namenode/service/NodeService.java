@@ -88,7 +88,7 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
-        //TODO: 1, Transfer ownership of all Replicated files to previous neighbor
+        //TODO: 1, Transfer ownership of all Replicated files to previous neighbor -> OK
         //TODO: 2, Transfer log file to neighbor and update
         //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
 
@@ -100,12 +100,7 @@ public class NodeService {
             File[] files = folder.listFiles();
             if (files != null) {
 
-                for (File file : files) {
-                    //edge case where previous node has file stored locally:
-                    if(false){//will probably do this in unicastreceiver
-
-                    }
-
+                for (File file : files) {//always send all files to previousNode, on receive it will handle edge cases
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     data.put("fileName", filename);
@@ -117,7 +112,7 @@ public class NodeService {
                         NodeSender.sendUnicastMessage(
                                 previousNode.getIp(),
                                 previousNode.getPort(),
-                                "file_replication",//TODO: maybe change to "shutdown_replication"
+                                "shutdown_replication",
                                 data
                         );
                         System.out.println("Successfully sent " + filename + " to previous node.");

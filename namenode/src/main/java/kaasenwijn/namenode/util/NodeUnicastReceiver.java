@@ -1,5 +1,6 @@
 package kaasenwijn.namenode.util;
 
+import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
@@ -116,6 +117,17 @@ public class NodeUnicastReceiver extends Thread {
                         logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
 
+                    case "shutdown_replication":
+                        String nameofFile = data.getString("fileName");
+                        if(FileMonitor.getKnownFiles().contains(nameofFile)) {//Current node has file stored locally -> send it to previous node
+                            System.out.println("Edge case: file sent to previous node.");
+                            Neighbor previousNode = nodeRepository.getPrevious();
+                            NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
+                        }else {
+                            receiveFile(inputStream, nameofFile);
+                            logReplication(nameofFile, NodeService.getHash(source.getString("name")));
+                            break;
+                        }
                 }
 
                 in.close();
