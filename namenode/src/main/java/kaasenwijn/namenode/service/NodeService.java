@@ -92,6 +92,42 @@ public class NodeService {
         //TODO: 2, Transfer log file to neighbor and update
         //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
 
+        //Transfer all replicated files to the previous node directly through unicast messages
+        Neighbor previousNode = NodeRepository.getInstance().getPrevious();
+
+        File folder = new File("replicated_files"+NodeRepository.getInstance().getName());
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+
+                for (File file : files) {
+                    //edge case where previous node has file stored locally:
+                    if(false){//will probably do this in unicastreceiver
+
+                    }
+
+                    String filename = file.getName();
+                    JSONObject data = new JSONObject();
+                    data.put("fileName", filename);
+                    data.put("fileHash", NodeService.getHash(filename));
+                    data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
+
+                    // Send replication request to the naming server
+                    try {
+                        NodeSender.sendUnicastMessage(
+                                previousNode.getIp(),
+                                previousNode.getPort(),
+                                "file_replication",//TODO: maybe change to "shutdown_replication"
+                                data
+                        );
+                        System.out.println("Successfully sent " + filename + " to previous node.");
+                    } catch (CommunicationException e) {
+                        System.err.println("Failed to send " + filename + " to previous node.");
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
 
         System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
