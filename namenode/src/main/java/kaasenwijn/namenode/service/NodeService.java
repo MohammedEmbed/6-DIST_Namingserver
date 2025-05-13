@@ -107,7 +107,6 @@ public class NodeService {
                     data.put("fileHash", NodeService.getHash(filename));
                     data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
 
-                    // Send replication request to the naming server
                     try {
                         NodeSender.sendUnicastMessage(
                                 previousNode.getIp(),
@@ -123,7 +122,11 @@ public class NodeService {
                 }
             }
         }
+        //Transfer log file to previous node
 
+
+
+        //shutdown
         System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
 
