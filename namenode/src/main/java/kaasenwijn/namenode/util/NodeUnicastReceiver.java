@@ -117,7 +117,7 @@ public class NodeUnicastReceiver extends Thread {
                         logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
 
-                    case "shutdown_replication":
+                    case "shutdown_replication":// The node receives a file from a node that will shut down
                         String nameofFile = data.getString("fileName");
                         if(FileMonitor.getKnownFiles().contains(nameofFile)) {//Current node has file stored locally -> send it to previous node
                             System.out.println("Edge case: file sent to previous node.");
@@ -125,6 +125,7 @@ public class NodeUnicastReceiver extends Thread {
                             NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
                         }else {
                             receiveFile(inputStream, nameofFile);
+                            //Update the logfile with the currentOwner
                             logReplication(nameofFile, NodeService.getHash(source.getString("name")));
                             break;
                         }
@@ -176,7 +177,7 @@ public class NodeUnicastReceiver extends Thread {
             logData.put("original_owner", ownerInfo);
 
             JSONObject downloadedInfo = new JSONObject();
-            ownerInfo.put("node_id", nodeRepository.getCurrentId());
+            downloadedInfo.put("node_id", nodeRepository.getCurrentId());
             logData.put("downloaded_locations", downloadedInfo);
 
             try (FileWriter fileWriter = new FileWriter(logFile);) {

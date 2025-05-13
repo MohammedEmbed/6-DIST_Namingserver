@@ -108,21 +108,23 @@ public class NodeService {
                     data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
 
                     try {
+                        //Send the file
                         NodeSender.sendUnicastMessage(
                                 previousNode.getIp(),
                                 previousNode.getPort(),
                                 "shutdown_replication",
                                 data
                         );
-                        System.out.println("Successfully sent " + filename + " to previous node.");
+
+                        System.out.println("Successfully sent " + filename + " and log to previous node.");
                     } catch (CommunicationException e) {
-                        System.err.println("Failed to send " + filename + " to previous node.");
+                        System.err.println("Failed to send " + filename + " and log to previous node.");
                         e.printStackTrace();
                     }
                 }
             }
         }
-        //Transfer log file to previous node
+
 
 
 
