@@ -61,10 +61,9 @@ public class NamenodeApplication {
         };
 
         // Schedule the task to run every 20 seconds with no initial delay
-        scheduler.scheduleAtFixedRate(task, 0, 20, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 100, TimeUnit.SECONDS);
 
-        FileMonitor fileMonitor = new FileMonitor();
-        fileMonitor.start();
+        FileMonitor.getInstance().start();
     }
 
 }

@@ -238,4 +238,47 @@ public class NodeService {
 
     }
 
+    // TODO: refactor to API wrapper
+    public static JSONObject getFileReplicationLocation(int filehash) throws RuntimeException {
+        int currentHash = nodeRepository.getCurrentId();
+        // Send HTTP DELETE request to nameserver to remove this node
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        try {
+
+            URL url = new URL("http://" + namingServerIp + ":8080/api/file/location/" + currentHash+"/"+filehash);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                conn.disconnect();
+
+                // Parse JSON
+                String jsonString = response.toString();
+                return new JSONObject(jsonString);
+
+            } else {
+                System.out.println("GET request failed with response code: " + responseCode);
+                conn.disconnect();
+                throw new RuntimeException("HTTP communication with nameserver failed");
+            }
+
+
+        } catch (Exception e) {
+            System.err.println("Error GET request to " + namingServerIp);
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+    }
+
 }
