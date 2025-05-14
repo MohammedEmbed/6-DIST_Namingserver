@@ -9,7 +9,7 @@ public class SyncAgent extends Agent {
 
     @Override
     protected void setup() {
-        System.out.println(getLocalName() + " is starting...");
+        System.out.println(getLocalName() + " is starting");
 
         HashMap<Integer, String> knownFiles = FileMonitor.getKnownFiles();
 
@@ -17,7 +17,5 @@ public class SyncAgent extends Agent {
         for (String filename : knownFiles.values()) {
             System.out.println(" -> " + filename);
         }
-
-        // Now you're ready to continue with Step 2: sync this list with neighbors
     }
 }
