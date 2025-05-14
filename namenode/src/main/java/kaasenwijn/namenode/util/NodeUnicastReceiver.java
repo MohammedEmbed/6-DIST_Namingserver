@@ -126,7 +126,20 @@ public class NodeUnicastReceiver extends Thread {
                         }else {
                             receiveFile(inputStream, nameofFile);
                             //Update the logfile with the currentOwner
-                            logReplication(nameofFile, NodeService.getHash(source.getString("name")));
+                            JSONObject logData = data.getJSONObject("logFile");
+                            JSONObject downloadedInfo = new JSONObject();
+                            downloadedInfo.put("node_id", nodeRepository.getCurrentId());
+                            logData.put("downloaded_locations", downloadedInfo);
+                            String logFileName = data.getString("logFileName");
+                            File logFile = new File(logFileName);
+                            try (FileWriter fileWriter = new FileWriter(logFile);) {
+                                fileWriter.write(logData.toString(2));
+                                System.out.println("Created replication log: " + logFileName);
+                            } catch (IOException e) {
+                                System.err.println("Failed to create replication log: " + logFileName);
+                                e.printStackTrace();
+                            }
+
                             break;
                         }
                 }

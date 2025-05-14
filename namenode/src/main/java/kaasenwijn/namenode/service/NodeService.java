@@ -103,9 +103,16 @@ public class NodeService {
                 for (File file : files) {//always send all files to previousNode, on receive it will handle edge cases
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
+                    int fileHash = NodeService.getHash(filename);
+                    String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + fileHash + ".json";
+                    File logFile = new File(logFileName);
+                    JSONObject logJson = new JSONObject(logFile);
+
                     data.put("fileName", filename);
-                    data.put("fileHash", NodeService.getHash(filename));
-                    data.put("nodeHash", NodeRepository.getInstance().getCurrentId());
+                    data.put("fileHash", fileHash);
+                    data.put("nodeHash", NodeRepository.getInstance().getCurrentId());//why
+                    data.put("logFileName",logFileName);
+                    data.put("logFile", logJson);
 
                     try {
                         //Send the file
@@ -115,6 +122,8 @@ public class NodeService {
                                 "shutdown_replication",
                                 data
                         );
+
+
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
                     } catch (CommunicationException e) {
