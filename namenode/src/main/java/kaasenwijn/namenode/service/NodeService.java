@@ -4,6 +4,7 @@ import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
+import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -91,11 +92,11 @@ public class NodeService {
         //TODO: 1, Transfer ownership of all Replicated files to previous neighbor -> OK
         //TODO: 2, Transfer log file to neighbor and update
         //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
-
+        System.out.println("SHUUUUUUUTTTTTTT MEEEE");
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
-
-        File folder = new File("replicated_files"+NodeRepository.getInstance().getName());
+        String directory = "replicated_files_"+NodeRepository.getInstance().getName();
+        File folder = new File(directory);
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
             if (files != null) {
@@ -110,7 +111,6 @@ public class NodeService {
 
                     data.put("fileName", filename);
                     data.put("fileHash", fileHash);
-                    data.put("nodeHash", NodeRepository.getInstance().getCurrentId());//why
                     data.put("logFileName",logFileName);
                     data.put("logFile", logJson);
 
@@ -123,6 +123,8 @@ public class NodeService {
                                 data
                         );
 
+                        NodeUnicastReceiver.deleteFile(logFileName);
+                        NodeUnicastReceiver.deleteFile(directory+"/"+filename);
 
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");

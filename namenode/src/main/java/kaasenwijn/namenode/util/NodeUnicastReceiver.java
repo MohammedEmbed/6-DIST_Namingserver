@@ -115,7 +115,8 @@ public class NodeUnicastReceiver extends Thread {
 
                     case "shutdown_replication":// The node receives a file from a node that will shut down
                         String nameofFile = data.getString("fileName");
-                        if(FileMonitor.getKnownFiles().contains(nameofFile)) {//Current node has file stored locally -> send it to previous node
+                        int fileHash2 =data.getInt("fileHash");
+                        if(FileMonitor.getKnownFiles().containsKey(fileHash2)) {//Current node has file stored locally -> send it to previous node
                             System.out.println("Edge case: file sent to previous node.");
                             Neighbor previousNode = nodeRepository.getPrevious();
                             NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
