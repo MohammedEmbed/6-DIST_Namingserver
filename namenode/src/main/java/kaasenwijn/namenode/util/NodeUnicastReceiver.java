@@ -11,12 +11,15 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
 
     private static final NodeRepository nodeRepository = NodeRepository.getInstance();
-
+    private static final Set<Integer> lockedFiles = new HashSet<>();
 
     @Override
     public void run() {
@@ -150,6 +153,46 @@ public class NodeUnicastReceiver extends Thread {
                         deleteFile(logFileName);
                         break;
 
+                    case "file_list_sync":
+                        System.out.println("[file_list_sync] Received file list from " + source.getString("ip"));
+
+                        HashMap<Integer, String> currentNodeFiles = FileMonitor.getKnownFiles();
+
+                        JSONObject neighborFileMap = data;
+                        for (String receivedHashStr : neighborFileMap.keySet()) {
+                            int receivedFileHash = Integer.parseInt(receivedHashStr);
+                            String receivedFileName = neighborFileMap.getString(receivedHashStr);
+
+                            if (!currentNodeFiles.containsKey(receivedFileHash)) {
+                                System.out.printf(" → Missing file detected: %s (hash: %d)%n", receivedFileName, receivedFileHash);
+                                // TODO: add request to fetch the file
+                            }
+                        }
+                        break;
+
+                    case "lock_request":
+                        int lockRequestHash = data.getInt("fileHash");
+                        JSONObject lockResponse = new JSONObject();
+                        if (!lockedFiles.contains(lockRequestHash)) {
+                            lockedFiles.add(lockRequestHash);
+                            lockResponse.put("status", "granted");
+                        } else {
+                            lockResponse.put("status", "denied");
+                        }
+                        lockResponse.put("fileHash", lockRequestHash);
+                        NodeSender.sendUnicastMessage(source.getString("ip"), source.getInt("port"), "lock_response", lockResponse);
+                        break;
+
+                    case "lock_response":
+                        String lockStatus = data.getString("status");
+                        int lockedFileHash = data.getInt("fileHash");
+                        if ("granted".equals(lockStatus)) {
+                            System.out.printf("[lock_response] Lock granted for file %d. Ready to download.%n", lockedFileHash);
+                            // Handle download trigger logic
+                        } else {
+                            System.out.printf("[lock_response] Lock denied for file %d. Will retry later.%n", lockedFileHash);
+                        }
+                        break;
 
                 }
 
