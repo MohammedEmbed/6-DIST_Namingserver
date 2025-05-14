@@ -180,7 +180,12 @@ public class NodeUnicastReceiver extends Thread {
                             lockResponse.put("status", "denied");
                         }
                         lockResponse.put("fileHash", lockRequestHash);
-                        NodeSender.sendUnicastMessage(source.getString("ip"), source.getInt("port"), "lock_response", lockResponse);
+                        try {
+                            NodeSender.sendUnicastMessage(source.getString("ip"), source.getInt("port"), "lock_response", lockResponse);
+                        } catch (CommunicationException e) {
+                            System.err.println("[lock_request] Failed to send lock response to " + source.getString("ip"));
+                            e.printStackTrace();
+                        }
                         break;
 
                     case "lock_response":
