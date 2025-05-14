@@ -2,6 +2,7 @@ package kaasenwijn.namenode.agents;
 
 import jade.core.Agent;
 import jade.core.Location;
+import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.NodeSender;
 import org.json.JSONObject;
@@ -46,20 +47,21 @@ public class FailureAgent extends Agent {
                         System.out.printf("[FailureAgent] File '%s' (hash %d) is owned by failed node. Reassigning...%n", filename, fileHash);
                         //System.out.println("[FailureAgent] File " + filename + " (hash " + fileHash + ") is owned by failed node. Reassigning...\n");
 
-                        // Update log
-                        originalOwner.put("node_id", newOwnerId);
+                        originalOwner.put("node_id", newOwnerId); // Update log
 
                         try (FileWriter writer = new FileWriter(logFile)) {
                             writer.write(log.toString(2));
                         }
 
-                        // Send file to new owner
-                        String newOwnerIp = "ip-here"; //TODO: Lookup via NodeRepository or use IP mapping
-                        int newOwnerPort = 9090;   //TODO: should be discovered
+                        Neighbor newOwner = new Neighbor(newOwnerId); // Lookup IP/port of new owner
+                        String newOwnerIp = newOwner.getIp();
+                        int newOwnerPort = newOwner.getPort();
+
                         NodeSender.sendFile(newOwnerIp, newOwnerPort, filename);
                         System.out.printf("[FailureAgent] Sent file '%s' to new owner %s%n", filename, newOwnerIp);
                     }
                 } catch (IOException e) {
+                    System.err.println("[FailureAgent] Failed to send file to new owner.");
                     e.printStackTrace();
                 }
             }
