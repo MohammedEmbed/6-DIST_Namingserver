@@ -4,6 +4,7 @@ import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -126,9 +127,13 @@ public class NodeUnicastReceiver extends Thread {
                             JSONObject logData = data.getJSONObject("logFile");
                             JSONObject downloadedInfo = new JSONObject();
                             downloadedInfo.put("node_id", nodeRepository.getCurrentId());
-                            logData.put("downloaded_locations", downloadedInfo);
+                            JSONArray downloadArray = logData.getJSONArray("downloaded_locations");
+                            downloadArray.put(downloadedInfo);
+                            logData.put("downloaded_locations", downloadArray);
                             String logFileName = data.getString("logFileName");
-                            File logFile = new File(logFileName);
+                            String logFilePath = "logs_"+nodeRepository.getName()+"/"+logFileName;
+                            File logFile = new File(logFilePath);
+
                             try (FileWriter fileWriter = new FileWriter(logFile);) {
                                 fileWriter.write(logData.toString(2));
                                 System.out.println("Created replication log: " + logFileName);
@@ -216,8 +221,10 @@ public class NodeUnicastReceiver extends Thread {
             ownerInfo.put("node_id", originalOwnerId);
             logData.put("original_owner", ownerInfo);
 
-            JSONObject downloadedInfo = new JSONObject();
-            downloadedInfo.put("node_id", nodeRepository.getCurrentId());
+            JSONArray downloadedInfo = new JSONArray();
+            JSONObject downloadedInfoEntry = new JSONObject();
+            downloadedInfoEntry.put("node_id", nodeRepository.getCurrentId());
+            downloadedInfo.put(downloadedInfoEntry);
             logData.put("downloaded_locations", downloadedInfo);
 
             try (FileWriter fileWriter = new FileWriter(logFile);) {

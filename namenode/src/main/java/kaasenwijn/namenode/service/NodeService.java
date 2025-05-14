@@ -6,6 +6,7 @@ import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -92,7 +93,6 @@ public class NodeService {
         //TODO: 1, Transfer ownership of all Replicated files to previous neighbor -> OK
         //TODO: 2, Transfer log file to neighbor and update
         //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
-        System.out.println("SHUUUUUUUTTTTTTT MEEEE");
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
         String directory = "replicated_files_"+NodeRepository.getInstance().getName();
@@ -105,14 +105,20 @@ public class NodeService {
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     int fileHash = NodeService.getHash(filename);
-                    String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + fileHash + ".json";
-                    File logFile = new File(logFileName);
-                    JSONObject logJson = new JSONObject(logFile);
+                    String logFileName = "replication_log_" + fileHash + ".json";
+                    String logFilePath = "logs_"+nodeRepository.getName() +"/"+logFileName;
+                    JSONObject logData = new JSONObject();
+                    try{
+                        logData = readJson(logFilePath);
 
+                    }catch (Exception e){
+                        System.out.println("Failed to read log file!");
+                        return;
+                    }
                     data.put("fileName", filename);
                     data.put("fileHash", fileHash);
                     data.put("logFileName",logFileName);
-                    data.put("logFile", logJson);
+                    data.put("logFile", logData);
 
                     try {
                         //Send the file
@@ -123,7 +129,7 @@ public class NodeService {
                                 data
                         );
 
-                        NodeUnicastReceiver.deleteFile(logFileName);
+                        NodeUnicastReceiver.deleteFile(logFilePath);
                         NodeUnicastReceiver.deleteFile(directory+"/"+filename);
 
 
@@ -280,6 +286,20 @@ public class NodeService {
             System.err.println("Error GET request to " + namingServerIp);
             e.printStackTrace();
             throw new RuntimeException();
+        }
+    }
+    private static  JSONObject readJson(String filePath) throws Exception,IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new Exception("File not found");
+        }
+        try (FileReader reader = new FileReader(file)) {
+            // Parse JSON
+            return  new JSONObject(new JSONTokener(reader));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
