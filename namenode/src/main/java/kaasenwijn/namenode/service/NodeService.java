@@ -135,15 +135,14 @@ public class NodeService {
                                 data
                         );
 
-                        NodeUnicastReceiver.deleteFile(logFilePath);
-                        NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
-
-
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
                     } catch (CommunicationException e) {
                         System.err.println("Failed to send " + filename + " and log to previous node.");
                         e.printStackTrace();
                     }
+                    //delete the file and log, whether the other node accepts it or not
+                    NodeUnicastReceiver.deleteFile(logFilePath);
+                    NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
                 }
             }
         }
