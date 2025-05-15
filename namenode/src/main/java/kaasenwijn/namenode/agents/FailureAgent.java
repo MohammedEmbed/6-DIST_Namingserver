@@ -15,6 +15,8 @@ public class FailureAgent extends Agent {
     private int failedNodeId;
     private int newOwnerId;
 
+    private final static NodeRepository nodeRepository = NodeRepository.getInstance();
+
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -29,7 +31,7 @@ public class FailureAgent extends Agent {
 
         System.out.println("[FailureAgent] Started at node: " + NodeRepository.getInstance().getCurrentId());
 
-        String logFolderPath = "logs_" + NodeRepository.getInstance().getName(); //TODO: Is this right?
+        String logFolderPath = "logs_" + nodeRepository.getName(); //TODO: Is this right?
         File logFolder = new File(logFolderPath);
 
         if (logFolder.exists()) {
