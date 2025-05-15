@@ -95,13 +95,13 @@ public class NodeService {
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
 
-        String replication_path = "replicated_files_"+NodeRepository.getInstance().getName();
-        File replication_dir = new File(replication_path);
-        if (replication_dir.exists() && replication_dir.isDirectory()) {
-            File[] replication_files = replication_dir.listFiles();
-            if (replication_files != null) {
+        String replicationPath = "replicated_files_"+NodeRepository.getInstance().getName();
+        File replicationDir = new File(replicationPath);
+        if (replicationDir.exists() && replicationDir.isDirectory()) {
+            File[] replicationFiles = replicationDir.listFiles();
+            if (replicationFiles != null) {
 
-                for (File file : replication_files) {//always send all replicated files to previousNode, on receive it will handle edge cases
+                for (File file : replicationFiles) {//always send all replicated files to previousNode, on receive it will handle edge cases
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     int fileHash = NodeService.getHash(filename);
@@ -136,7 +136,7 @@ public class NodeService {
                         );
 
                         NodeUnicastReceiver.deleteFile(logFilePath);
-                        NodeUnicastReceiver.deleteFile(replication_path+"/"+filename);
+                        NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
 
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
@@ -148,8 +148,17 @@ public class NodeService {
             }
         }
 
+        //Notify owners of local files to remove it if not downloaded.
+        String localPath = "replicated_files_"+NodeRepository.getInstance().getName();
+        File localDir = new File(localPath);
+        if (localDir.exists() && localDir.isDirectory()) {
+            File[] localFiles = localDir.listFiles();
+            if (localFiles != null) {
+                for (File localFile : localFiles){
 
-
+                }
+            }
+        }
 
         //shutdown
         System.out.println("Shutting down");
