@@ -20,7 +20,7 @@ rmdir /s /q "%TARGET_DIR%"
 :: Step 1: Build the Maven project
 echo Building Maven project...
 cd /d %PROJECT_DIR%
-
+call mvn install:install-file -Dfile=jade/lib/jade.jar -DgroupId=com.tilab.jade -DartifactId=jade -Dversion=4.6.0 -Dpackaging=jar
 call mvn clean package -DskipTests
 
 :: Check if build was successful
