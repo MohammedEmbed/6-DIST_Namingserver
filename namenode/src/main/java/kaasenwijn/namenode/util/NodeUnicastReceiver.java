@@ -147,13 +147,7 @@ public class NodeUnicastReceiver extends Thread {
                             break;
 
 
-//                    case "shutdown_local": //a node that will shut down warns to delete replicated file and log (if needed)TODO:edge case?
-//                        String filename3=data.getString("filename");
-//                        String localFilePath = "replicated_files_"+nodeRepository.getName()+"/"+filename3;
-//                        String logPath = "logs_"+nodeRepository.getName()+"/"+filename3;
-//                        deleteFile(localFilePath);
-//                        deleteFile(logPath);
-//                        break;
+//
 
                     case "file_replication_deletion":
 
