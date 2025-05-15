@@ -120,7 +120,6 @@ public class NodeUnicastReceiver extends Thread {
                         Neighbor previousNode = nodeRepository.getPrevious();
                         if(FileMonitor.getKnownFiles().containsKey(fileHash2) &!source.getString("ip").equals(previousNode.getIp())) {
                             //Current node has file stored locally -> send it to previous node (unless last node in the system)
-
                             System.out.println("Edge case: file sent to previous node.");
                             NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
                         }else {
@@ -145,9 +144,6 @@ public class NodeUnicastReceiver extends Thread {
                             }
                         }
                             break;
-
-
-//
 
                     case "file_replication_deletion":
 

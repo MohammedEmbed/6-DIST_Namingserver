@@ -91,17 +91,16 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
-        //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
+
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
-
         String replicationPath = "replicated_files_"+NodeRepository.getInstance().getName();
         File replicationDir = new File(replicationPath);
         if (replicationDir.exists() && replicationDir.isDirectory()) {
             File[] replicationFiles = replicationDir.listFiles();
             if (replicationFiles != null) {
 
-                for (File file : replicationFiles) {//always send all replicated files to previousNode, on receive it will handle edge cases
+                for (File file : replicationFiles) {
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     int fileHash = NodeService.getHash(filename);
@@ -142,8 +141,6 @@ public class NodeService {
                         System.err.println("Failed to send " + filename + " and log to previous node.");
                         e.printStackTrace();
                     }
-                    //delete the file and log, whether the other node accepts it or not
-
                 }
             }
         }
@@ -160,10 +157,7 @@ public class NodeService {
                     JSONObject location=getFileReplicationLocation(getHash(fileName));
                     String locationIp = location.getString("ip");
                     int locationPort = location.getInt("port");
-
-
                     data.put("fileName",fileName);
-
 
                     try {
                         NodeSender.sendUnicastMessage(
