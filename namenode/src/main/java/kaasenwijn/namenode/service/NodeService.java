@@ -5,6 +5,7 @@ import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.stereotype.Service;
@@ -90,27 +91,32 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
-        //TODO: 1, Transfer ownership of all Replicated files to previous neighbor -> OK
-        //TODO: 2, Transfer log file to neighbor and update
         //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
-        String directory = "replicated_files_"+NodeRepository.getInstance().getName();
-        File folder = new File(directory);
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
 
-                for (File file : files) {//always send all files to previousNode, on receive it will handle edge cases
+        String replication_path = "replicated_files_"+NodeRepository.getInstance().getName();
+        File replication_dir = new File(replication_path);
+        if (replication_dir.exists() && replication_dir.isDirectory()) {
+            File[] replication_files = replication_dir.listFiles();
+            if (replication_files != null) {
+
+                for (File file : replication_files) {//always send all replicated files to previousNode, on receive it will handle edge cases
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     int fileHash = NodeService.getHash(filename);
                     String logFileName = "replication_log_" + fileHash + ".json";
                     String logFilePath = "logs_"+nodeRepository.getName() +"/"+logFileName;
                     JSONObject logData = new JSONObject();
-                    try{
+                    try{//update the log of the file to remove old node hash
                         logData = readJson(logFilePath);
-
+                        JSONArray downloadArray = logData.getJSONArray("downloaded_locations");
+                        for(int i = 0; i < downloadArray.length();i++){
+                            if(downloadArray.getJSONObject(i).get("node_id").equals(nodeRepository.getCurrentId())){
+                                downloadArray.remove(i);
+                            }
+                        }
+                        logData.put("downloaded_locations",downloadArray);
                     }catch (Exception e){
                         System.out.println("Failed to read log file!");
                         return;
@@ -130,7 +136,7 @@ public class NodeService {
                         );
 
                         NodeUnicastReceiver.deleteFile(logFilePath);
-                        NodeUnicastReceiver.deleteFile(directory+"/"+filename);
+                        NodeUnicastReceiver.deleteFile(replication_path+"/"+filename);
 
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
