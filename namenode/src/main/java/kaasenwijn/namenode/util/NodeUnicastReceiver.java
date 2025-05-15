@@ -114,12 +114,14 @@ public class NodeUnicastReceiver extends Thread {
                         logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
 
-                    case "shutdown_replication":// The node receives a file from a node that will shut down
+                    case "shutdown_replication"://A node that will shut down passes down a replicated file and log
                         String nameofFile = data.getString("fileName");
                         int fileHash2 =data.getInt("fileHash");
-                        if(FileMonitor.getKnownFiles().containsKey(fileHash2)) {//Current node has file stored locally -> send it to previous node
+                        Neighbor previousNode = nodeRepository.getPrevious();
+                        if(FileMonitor.getKnownFiles().containsKey(fileHash2) &!source.getString("ip").equals(previousNode.getIp())) {
+                            //Current node has file stored locally -> send it to previous node (unless last node in the system)
+
                             System.out.println("Edge case: file sent to previous node.");
-                            Neighbor previousNode = nodeRepository.getPrevious();
                             NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
                         }else {
                             receiveFile(inputStream, nameofFile);
@@ -131,7 +133,7 @@ public class NodeUnicastReceiver extends Thread {
                             downloadArray.put(downloadedInfo);
                             logData.put("downloaded_locations", downloadArray);
                             String logFileName = data.getString("logFileName");
-                            String logFilePath = "logs_"+nodeRepository.getName()+"/"+logFileName;
+                            String logFilePath = "logs_" + nodeRepository.getName() + "/" + logFileName;
                             File logFile = new File(logFilePath);
 
                             try (FileWriter fileWriter = new FileWriter(logFile);) {
@@ -141,9 +143,17 @@ public class NodeUnicastReceiver extends Thread {
                                 System.err.println("Failed to create replication log: " + logFileName);
                                 e.printStackTrace();
                             }
-
-                            break;
                         }
+                            break;
+
+
+//                    case "shutdown_local": //a node that will shut down warns to delete replicated file and log (if needed)TODO:edge case?
+//                        String filename3=data.getString("filename");
+//                        String localFilePath = "replicated_files_"+nodeRepository.getName()+"/"+filename3;
+//                        String logPath = "logs_"+nodeRepository.getName()+"/"+filename3;
+//                        deleteFile(localFilePath);
+//                        deleteFile(logPath);
+//                        break;
 
                     case "file_replication_deletion":
 
@@ -151,9 +161,10 @@ public class NodeUnicastReceiver extends Thread {
                         System.out.printf("[file_replication_deletion] file %s received from %s : %s \n",fileName2,source.getString("ip"),source.getInt("port"));
                         String filePath = "replicated_files_"+nodeRepository.getName()+"/"+fileName2;
                         deleteFile(filePath);
-                        String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + NodeService.getHash(fileName2) + ".json";
-                        deleteFile(logFileName);
+                        String logFilePath = "logs_"+nodeRepository.getName() + "/replication_log_" + NodeService.getHash(fileName2) + ".json";
+                        deleteFile(logFilePath);
                         break;
+
 
 
                 }

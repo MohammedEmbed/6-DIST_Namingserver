@@ -134,6 +134,8 @@ public class NodeService {
                                 "shutdown_replication",
                                 data
                         );
+                        NodeUnicastReceiver.deleteFile(logFilePath);
+                        NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
                     } catch (CommunicationException e) {
@@ -141,19 +143,38 @@ public class NodeService {
                         e.printStackTrace();
                     }
                     //delete the file and log, whether the other node accepts it or not
-                    NodeUnicastReceiver.deleteFile(logFilePath);
-                    NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
+
                 }
             }
         }
 
         //Notify owners of local files to remove it if not downloaded.
-        String localPath = "replicated_files_"+NodeRepository.getInstance().getName();
+        String localPath = "local_files_"+NodeRepository.getInstance().getName();
         File localDir = new File(localPath);
         if (localDir.exists() && localDir.isDirectory()) {
             File[] localFiles = localDir.listFiles();
             if (localFiles != null) {
                 for (File localFile : localFiles){
+                    JSONObject data = new JSONObject();
+                    String fileName=localFile.getName();
+                    JSONObject location=getFileReplicationLocation(getHash(fileName));
+                    String locationIp = location.getString("ip");
+                    int locationPort = location.getInt("port");
+
+
+                    data.put("fileName",fileName);
+
+
+                    try {
+                        NodeSender.sendUnicastMessage(
+                                locationIp,
+                                locationPort,
+                                "file_replication_deletion",
+                                data
+                        );
+                    }catch (CommunicationException e){
+                        System.out.println("Failed to notify owner of file: "+fileName+" of shutdown.");
+                    }
 
                 }
             }
