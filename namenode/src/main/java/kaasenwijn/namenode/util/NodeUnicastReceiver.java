@@ -237,8 +237,17 @@ public class NodeUnicastReceiver extends Thread {
         } else { // When the logfile already exists and this is just a new download of the file
             try (FileReader fileReader = new FileReader(logFile);) {
                 JSONObject jsonObject = new JSONObject(new JSONTokener(fileReader));
-                jsonObject.getJSONObject("downloaded_locations").append("node_id", nodeRepository.getCurrentId());
+                JSONObject newEntry = new JSONObject();
+                newEntry.put("node_id",nodeRepository.getCurrentId());
+                jsonObject.getJSONArray("downloaded_locations").put(newEntry);
 
+                try (FileWriter fileWriter = new FileWriter(logFile);) {
+                    fileWriter.write(jsonObject.toString(2));
+                    System.out.println("Created replication log: " + logFileName);
+                } catch (IOException e) {
+                    System.err.println("Failed to create replication log: " + logFileName);
+                    e.printStackTrace();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
