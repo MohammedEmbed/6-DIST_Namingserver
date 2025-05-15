@@ -1,5 +1,7 @@
 package kaasenwijn.namenode;
 
+import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
 import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
 import kaasenwijn.namenode.util.Failure;
@@ -8,6 +10,8 @@ import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import jade.core.*;
+import jade.core.Runtime;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,6 +27,27 @@ public class NamenodeApplication {
         System.out.println("Node started with IP-address: " + ip + ", Port: " + port + " and Name: " + hostName);
 
         NodeService.startUp(ip, port, hostName);
+
+        // Initialize JADE container
+        Runtime rt = jade.core.Runtime.instance();
+        ProfileImpl profile = new ProfileImpl();
+        profile.setParameter("main", "false");
+        profile.setParameter("containerName", hostName);
+        AgentContainer container = rt.createAgentContainer(profile);
+
+        // Start SyncAgent on system launch
+        try {
+            AgentController syncAgent = container.createNewAgent(
+                    "SyncAgent",
+                    "kaasenwijn.namenode.agents.SyncAgent",
+                    null
+            );
+            syncAgent.start();
+            System.out.println("[Startup] SyncAgent launched and running infinitely.");
+        } catch (Exception e) {
+            System.err.println("[Startup] Failed to launch SyncAgent");
+            e.printStackTrace();
+        }
 
         // Start listening for unicasts
         NodeUnicastReceiver receiver = new NodeUnicastReceiver();
@@ -48,7 +73,7 @@ public class NamenodeApplication {
         // Register a Shutdown hook
         // https://www.baeldung.com/jvm-shutdown-hooks
         Thread shutdownHook = new Thread(NodeService::shutdown);
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        java.lang.Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         // Start periodic health-check
         // Create a scheduled executor with one thread
