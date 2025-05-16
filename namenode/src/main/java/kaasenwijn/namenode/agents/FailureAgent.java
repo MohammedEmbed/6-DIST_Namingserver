@@ -31,6 +31,8 @@ To develop Failure Agent class that implements the Runnable and Serializable int
         2. o Option 2: if the file is already stored on the new owner, only the log should be updated
 - Terminate the Failure Agent when it passed all nodes in the ring topology
     - If the node id is equal to the node id that started the agent -> terminate the Agent
+    private String failedNodeId;
+    private String newOwnerId;
 
 
  */
@@ -44,8 +46,8 @@ To develop Failure Agent class that implements the Runnable and Serializable int
     protected void setup() {
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
-            failedNodeId = (int) args[0];
-            newOwnerId = (int) args[1];
+            failedNodeId = (String) args[0]; //Todo: Check
+            newOwnerId = (String) args[1];
         } else {
             System.err.println("FailureAgent requires 2 arguments: failedNodeId and newOwnerId.");
             doDelete();
