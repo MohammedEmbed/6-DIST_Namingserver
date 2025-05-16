@@ -46,8 +46,8 @@ To develop Failure Agent class that implements the Runnable and Serializable int
     protected void setup() {
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
-            failedNodeId = (String) args[0]; //Todo: Check
-            newOwnerId = (String) args[1];
+            failedNodeId = (int) args[0]; //Todo: Check
+            newOwnerId = (int) args[1];
         } else {
             System.err.println("FailureAgent requires 2 arguments: failedNodeId and newOwnerId.");
             doDelete();
