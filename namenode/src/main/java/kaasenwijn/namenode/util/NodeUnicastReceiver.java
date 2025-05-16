@@ -235,6 +235,7 @@ public class NodeUnicastReceiver extends Thread {
                 System.err.println("Failed to create replication log: " + logFileName);
                 e.printStackTrace();
             }
+
         } else { // When the logfile already exists and this is just a new download of the file
             try (FileReader fileReader = new FileReader(logFile);) {
                 JSONObject jsonObject = new JSONObject(new JSONTokener(fileReader));

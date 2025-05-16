@@ -218,7 +218,15 @@ public class NodeService {
             throw new RuntimeException();
         }
     }
-    private static  JSONObject readJson(String filePath) throws Exception,IOException {
+
+    public static JSONObject getFileReplicationLocation(int filehash) {
+        int currentHash = nodeRepository.getCurrentId();
+        String namingServerIp = nodeRepository.getNamingServerIp();
+        String path = ":8080/api/file/location/" + currentHash+"/"+filehash;
+        return apiService.sendServerGetRequest(namingServerIp,path);
+    }
+
+    private static  JSONObject readJson(String filePath) throws Exception {
         File file = new File(filePath);
         if (!file.exists()) {
             throw new Exception("File not found");
@@ -229,8 +237,8 @@ public class NodeService {
 
         } catch (IOException e) {
             e.printStackTrace();
-            throw e;
-        }
+            }
+        return null;
     }
 
 }

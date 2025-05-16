@@ -34,7 +34,7 @@ public class ApiService {
             return 500;
         }
     }
-    private JSONObject sendServerGetRequest(String namingServerIp, String path){
+    public JSONObject sendServerGetRequest(String namingServerIp, String path){
 
         try {
             URL url = new URL("http://" + namingServerIp + path);
@@ -139,9 +139,8 @@ public class ApiService {
     }
 
 
-    public JSONObject getNodeIpRequest(int currentId){
+    public JSONObject getServerObjectRequest(String path){
         String namingServerIp = nodeRepository.getNamingServerIp();
-        String path = ":8080/api/node/ip/" + currentId;
         return sendServerGetRequest(namingServerIp,path);
     }
 
@@ -169,6 +168,8 @@ public class ApiService {
             return false;
         }
     }
+
+
 
 
 

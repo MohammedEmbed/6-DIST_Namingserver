@@ -39,7 +39,7 @@ for %%A in (%IP_PORT_LIST%) do (
         set SERVER_PORT=%%C
         set SERVER_IP=%%B
         set SERVER_NAME=%%D
-        set NS_IP=143.169.223.47
+        set NS_IP=143.169.213.125
         set NS_PORT=8090
 
         if not exist "local_files_%%D" mkdir "local_files_%%D"
