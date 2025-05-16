@@ -30,7 +30,7 @@ if errorlevel 1 (
 )
 
 :: Step 2: Run instances with different IPs and ports
-echo Starting servers
+echo Starting servers and agents
 
 for %%A in (%IP_PORT_LIST%) do (
     :: Split the pair into IP and Port using the colon (":") delimiter
@@ -41,16 +41,18 @@ for %%A in (%IP_PORT_LIST%) do (
         set SERVER_NAME=%%D
         set NS_IP=143.169.218.121
         set NS_PORT=8090
+        set /a AGENT_PORT=!SERVER_PORT!+1
 
         if not exist "local_files_%%D" mkdir "local_files_%%D"
         if not exist "logs_%%D" mkdir "logs_%%D"
         if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
         start "%%D - %%B:%%C" cmd /k "java -jar %JAR_FILE%"
+        echo agent port: !AGENT_PORT!
+        start "%%D - Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT!"
+
     )
 )
 
-echo starting agents
-start "Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents daan:kaasenwijn.namenode.agents.SyncAgent"
 
 echo All processes started.
 endlocal
