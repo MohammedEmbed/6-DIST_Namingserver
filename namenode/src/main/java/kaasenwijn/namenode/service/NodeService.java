@@ -4,7 +4,10 @@ import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
+import kaasenwijn.namenode.util.NodeUnicastReceiver;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -28,9 +31,6 @@ public class NodeService {
         repo.setNext(id);
         repo.setPrevious(id);
 
-        // TODO: fix for lab5, currently makes the server crash
-        // verifyLocalFiles();
-        // reportLocalFilesToNamingServer();
     }
 
     /**
@@ -74,44 +74,6 @@ public class NodeService {
         return data;
     }
 
-    // TODO: lab5
-    public static void verifyLocalFiles() {
-        /*
-        De files voor elke node moeten momenteel bijgehouden worden in het mapje files.
-        de folder (lijn hier onder) kijkt op die map en lijst de files op die erin zetten.
-
-        Dan extra is nog kort alle local files printen (ter info mag eigenlijk weg)
-         */
-        File folder = new File("files");
-        File[] files = folder.listFiles();
-
-        //Print out local files
-        System.out.println("Local files:");
-        for (File file : files) {
-            if (file.isFile()) {
-                System.out.println("- " + file.getName());
-            }
-        }
-    }
-
-    // TODO: lab5
-    public static void reportLocalFilesToNamingServer() {
-        File folder = new File(System.getProperty("user.dir") + File.separator + "files");
-        if (!folder.exists()) return;
-
-        NodeRepository repo = NodeRepository.getInstance(); //Instantie opvragen
-        String selfIp = repo.getSelfIp(); //Vraag Ip op
-
-        for (File file : folder.listFiles()) { //Lijst alle files van de node op
-            if (!file.isFile()) continue;
-
-            String filename = file.getName();
-            int fileHash = getHash(filename); //Bereken hun hashes
-
-
-        }
-    }
-
     public static boolean shouldDrop(JSONObject packet) {
         JSONObject source = packet.getJSONObject("source");
         return Objects.equals(nodeRepository.getSelfIp(), source.getString("ip"));
@@ -128,6 +90,90 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
+
+        //Transfer all replicated files to the previous node directly through unicast messages
+        Neighbor previousNode = NodeRepository.getInstance().getPrevious();
+        String replicationPath = "replicated_files_"+NodeRepository.getInstance().getName();
+        File replicationDir = new File(replicationPath);
+        if (replicationDir.exists() && replicationDir.isDirectory()) {
+            File[] replicationFiles = replicationDir.listFiles();
+            if (replicationFiles != null) {
+
+                for (File file : replicationFiles) {
+                    String filename = file.getName();
+                    JSONObject data = new JSONObject();
+                    int fileHash = NodeService.getHash(filename);
+                    String logFileName = "replication_log_" + fileHash + ".json";
+                    String logFilePath = "logs_"+nodeRepository.getName() +"/"+logFileName;
+                    JSONObject logData = new JSONObject();
+                    try{//update the log of the file to remove old node hash
+                        logData = readJson(logFilePath);
+                        JSONArray downloadArray = logData.getJSONArray("downloaded_locations");
+                        for(int i = 0; i < downloadArray.length();i++){
+                            if(downloadArray.getJSONObject(i).get("node_id").equals(nodeRepository.getCurrentId())){
+                                downloadArray.remove(i);
+                            }
+                        }
+                        logData.put("downloaded_locations",downloadArray);
+                    }catch (Exception e){
+                        System.out.println("Failed to read log file!");
+                        return;
+                    }
+                    data.put("fileName", filename);
+                    data.put("fileHash", fileHash);
+                    data.put("logFileName",logFileName);
+                    data.put("logFile", logData);
+
+                    try {
+                        //Send the file
+                        NodeSender.sendUnicastMessage(
+                                previousNode.getIp(),
+                                previousNode.getPort(),
+                                "shutdown_replication",
+                                data
+                        );
+                        NodeUnicastReceiver.deleteFile(logFilePath);
+                        NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
+
+                        System.out.println("Successfully sent " + filename + " and log to previous node.");
+                    } catch (CommunicationException e) {
+                        System.err.println("Failed to send " + filename + " and log to previous node.");
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        //Notify owners of local files to remove it if not downloaded.
+        String localPath = "local_files_"+NodeRepository.getInstance().getName();
+        File localDir = new File(localPath);
+        if (localDir.exists() && localDir.isDirectory()) {
+            File[] localFiles = localDir.listFiles();
+            if (localFiles != null) {
+                for (File localFile : localFiles){
+                    JSONObject data = new JSONObject();
+                    String fileName=localFile.getName();
+                    JSONObject location=getFileReplicationLocation(getHash(fileName));
+                    String locationIp = location.getString("ip");
+                    int locationPort = location.getInt("port");
+                    data.put("fileName",fileName);
+
+                    try {
+                        NodeSender.sendUnicastMessage(
+                                locationIp,
+                                locationPort,
+                                "file_replication_deletion",
+                                data
+                        );
+                    }catch (CommunicationException e){
+                        System.out.println("Failed to notify owner of file: "+fileName+" of shutdown.");
+                    }
+
+                }
+            }
+        }
+
+        //shutdown
         System.out.println("Shutting down");
         String currentName = nodeRepository.getName();
 
@@ -171,7 +217,20 @@ public class NodeService {
         }else{
             throw new RuntimeException();
         }
+    }
+    private static  JSONObject readJson(String filePath) throws Exception,IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new Exception("File not found");
+        }
+        try (FileReader reader = new FileReader(file)) {
+            // Parse JSON
+            return  new JSONObject(new JSONTokener(reader));
 
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
 }

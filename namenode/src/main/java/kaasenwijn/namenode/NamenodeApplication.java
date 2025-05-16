@@ -1,5 +1,6 @@
 package kaasenwijn.namenode;
 
+import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
 import kaasenwijn.namenode.util.Failure;
 import kaasenwijn.namenode.util.NodeMulticastReceiver;
@@ -7,6 +8,7 @@ import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 public class NamenodeApplication {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException{
         String ip = System.getenv("SERVER_IP");
         int port = Integer.parseInt(System.getenv("SERVER_PORT"));
         String hostName = System.getenv("SERVER_NAME");
@@ -46,6 +48,7 @@ public class NamenodeApplication {
 
         // Register a Shutdown hook
         // https://www.baeldung.com/jvm-shutdown-hooks
+
         Thread shutdownHook = new Thread(NodeService::shutdown);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
@@ -60,7 +63,9 @@ public class NamenodeApplication {
         };
 
         // Schedule the task to run every 20 seconds with no initial delay
-        scheduler.scheduleAtFixedRate(task, 0, 20, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(task, 0, 100, TimeUnit.SECONDS);
+
+        FileMonitor.getInstance().start();
     }
 
 }

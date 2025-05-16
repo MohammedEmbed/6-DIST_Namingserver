@@ -11,6 +11,8 @@ public class NodeRepository {
     private NodeRepository() {
         nodeStructure = new NodeStructure();
         nodeStructure.namingServerIp = System.getenv("NS_IP");
+        nodeStructure.namingServerPort = Integer.parseInt(System.getenv("NS_PORT"));
+
     }
 
     public static synchronized NodeRepository getInstance() {
@@ -81,5 +83,9 @@ public class NodeRepository {
 
     public String getNamingServerIp() {
         return nodeStructure.namingServerIp;
+    }
+
+    public int getNamingServerPort(){
+        return nodeStructure.namingServerPort;
     }
 }

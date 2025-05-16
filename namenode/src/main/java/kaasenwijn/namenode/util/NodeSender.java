@@ -1,8 +1,6 @@
 package kaasenwijn.namenode.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 
 import kaasenwijn.namenode.repository.NodeRepository;
@@ -47,78 +45,6 @@ public class NodeSender {
         }
     }
 
-
-    // TODO: fix for lab5
-    // Sends file report to naming server via TCP
-    private void sendFileReportViaTCP(String namingServerIp, int port) {
-        try {
-            File folder = new File("files");
-            if (!folder.exists()) {
-                System.out.println("Local files folder does not exist.");
-                return;
-            }
-
-            JSONObject report = new JSONObject();
-            report.put("ip", nodeRepository.getSelfIp());
-
-            JSONObject files = new JSONObject();
-            for (File file : folder.listFiles()) {
-                if (!file.isFile()) continue;
-                String filename = file.getName();
-                int hash = NodeService.getHash(filename);
-                files.put(filename, hash);
-            }
-            report.put("files", files);
-
-            Socket socket = new Socket(namingServerIp, port);
-            OutputStream out = socket.getOutputStream();
-            out.write(report.toString().getBytes());
-            out.flush();
-            socket.close();
-
-            System.out.println("File report sent to naming server via TCP.");
-
-        } catch (Exception e) {
-            System.err.println("Failed to send TCP report to naming server:");
-            e.printStackTrace();
-        }
-    }
-
-    // TODO: @Warre TCP
-    // Sends file to another node via HTTP POST --> Might need to be changed since http is turned off for us
-    protected static void sendFileToNode(String filename, String targetIp, int NODE_PORT) {
-        try {
-            File file = new File("files", filename);
-            if (!file.exists()) {
-                System.err.println("File not found: " + filename);
-                return;
-            }
-
-            URL url = new URL("http://" + targetIp + ":" + NODE_PORT + "/api/node/files/"); //TODO
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("File-Name", filename);
-            conn.setRequestProperty("Content-Type", "application/octet-stream");
-
-            try (OutputStream os = conn.getOutputStream();
-                 FileInputStream fis = new FileInputStream(file)) {
-                fis.transferTo(os);
-            }
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("File '" + filename + "' successfully sent to " + targetIp);
-            } else {
-                System.err.println("Failed to send file to " + targetIp + " — HTTP " + responseCode);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error sending file to " + targetIp);
-            e.printStackTrace();
-        }
-    }
-
     public static void sendUnicastMessage(String ip, int port, String type) throws CommunicationException {
         sendUnicastMessage(ip, port, type, new JSONObject());
     }
@@ -146,5 +72,46 @@ public class NodeSender {
         messageObj.put("port", nodeRepository.getSelfPort());
         return messageObj;
     }
+
+
+    public static void sendFile(String ip, int port, String filename) throws IOException {
+        Socket socket = new Socket(ip, port);
+        File myFile = new File("local_files_"+NodeRepository.getInstance().getName()+"/" + filename);
+        if (!myFile.exists()) {
+            System.out.println("File doesn't exist!");
+        } else {
+            // First send the name
+            JSONObject fileData = new JSONObject();
+            fileData.put("fileName",filename);
+            JSONObject unicastMessageObj = createObject("file_replication", fileData);
+
+            OutputStream out = socket.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+
+            writer.write(unicastMessageObj.toString());
+            writer.newLine();
+            writer.write("END"); // End of JSON
+            writer.newLine();
+            writer.flush();
+
+            // Then send the file
+            FileInputStream fis = new FileInputStream(myFile);
+            BufferedOutputStream bos = new BufferedOutputStream(out);
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+            fis.close();
+            bos.flush();
+            bos.close();
+            System.out.println("File sent successfully!");
+        }
+    }
+
 }
+
+
+
 

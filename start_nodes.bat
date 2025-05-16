@@ -39,7 +39,12 @@ for %%A in (%IP_PORT_LIST%) do (
         set SERVER_PORT=%%C
         set SERVER_IP=%%B
         set SERVER_NAME=%%D
-        set NS_IP=127.0.0.1
+        set NS_IP=143.169.223.47
+        set NS_PORT=8090
+
+        if not exist "local_files_%%D" mkdir "local_files_%%D"
+        if not exist "logs_%%D" mkdir "logs_%%D"
+        if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
         start "%%D - %%B:%%C" cmd /k "java -jar %JAR_FILE%"
     )
 )
