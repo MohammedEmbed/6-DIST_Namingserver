@@ -49,5 +49,8 @@ for %%A in (%IP_PORT_LIST%) do (
     )
 )
 
+echo starting agents
+start "Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents daan:kaasenwijn.namenode.agents.SyncAgent"
+
 echo All processes started.
 endlocal
