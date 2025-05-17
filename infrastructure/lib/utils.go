@@ -184,16 +184,6 @@ func SendJAR(localJarPath string, scpClient scp.Client) {
 }
 
 func RunJarNode(hostInfo Node, sshClient *ssh.Client) {
-	//Run the JAR file in a new Command Prompt window
-	//envString := "SERVER_PORT=" + strconv.Itoa(hostInfo.NPort) + " " +
-	//	"NS_HTTP_PORT=" + strconv.Itoa(hostInfo.NSHTTPPort) + " " +
-	//	"SERVER_NAME=" + hostInfo.Name + " " +
-	//	"NS_IP=" + hostInfo.NSIP + " " +
-	//	"NS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
-	//	"REMOTE=true"
-	//
-	//cmd := envString + " java -Dname=" + hostInfo.Name + " -jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
-
 	cmd := fmt.Sprintf(
 		"java -DREMOTE=true -DNS_PORT=%d -DNS_HTTP_PORT=%d -DSERVER_PORT=%d -DSERVER_NAME=%s -DNS_IP=%s -jar %s >> %slogs_%s.log 2>&1 &",
 		hostInfo.NSPort,
@@ -210,10 +200,6 @@ func RunJarNode(hostInfo Node, sshClient *ssh.Client) {
 }
 
 func RunJarNS(hostInfo Node, sshClient *ssh.Client) {
-	//Run the JAR file in a new Command Prompt window
-	//envString := "REMOTE=true NS_PORT=" + strconv.Itoa(hostInfo.NSPort)
-	//cmd := envString + " java -Dserver.port=" + strconv.Itoa(hostInfo.NSHTTPPort) + " -Dname=" + hostInfo.Name + " -jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
-
 	cmd := "java " +
 		"-DREMOTE=true " +
 		"-DNS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
