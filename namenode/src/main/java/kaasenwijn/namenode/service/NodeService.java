@@ -5,12 +5,12 @@ import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Objects;
 
 import static kaasenwijn.namenode.util.Failure.handleFailure;
@@ -18,6 +18,7 @@ import static kaasenwijn.namenode.util.Failure.handleFailure;
 @Service
 public class NodeService {
 
+    private final static ApiService apiService = new ApiService();
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
     public static void startUp(String ip, int port, String name) {
@@ -89,30 +90,39 @@ public class NodeService {
      * Remove the node from the Naming server’s Map
      */
     public static void shutdown() {
-        //TODO: 1, Transfer ownership of all Replicated files to previous neighbor -> OK
-        //TODO: 2, Transfer log file to neighbor and update
-        //TODO: 3, Notify owners of this node's local files that the file can be removed (unless downloaded by other nodes?? -> this never happens)
-        System.out.println("SHUUUUUUUTTTTTTT MEEEE");
+
         //Transfer all replicated files to the previous node directly through unicast messages
         Neighbor previousNode = NodeRepository.getInstance().getPrevious();
-        String directory = "replicated_files_"+NodeRepository.getInstance().getName();
-        File folder = new File(directory);
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
+        String replicationPath = "replicated_files_"+NodeRepository.getInstance().getName();
+        File replicationDir = new File(replicationPath);
+        if (replicationDir.exists() && replicationDir.isDirectory()) {
+            File[] replicationFiles = replicationDir.listFiles();
+            if (replicationFiles != null) {
 
-                for (File file : files) {//always send all files to previousNode, on receive it will handle edge cases
+                for (File file : replicationFiles) {
                     String filename = file.getName();
                     JSONObject data = new JSONObject();
                     int fileHash = NodeService.getHash(filename);
-                    String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + fileHash + ".json";
-                    File logFile = new File(logFileName);
-                    JSONObject logJson = new JSONObject(logFile);
-
+                    String logFileName = "replication_log_" + fileHash + ".json";
+                    String logFilePath = "logs_"+nodeRepository.getName() +"/"+logFileName;
+                    JSONObject logData = new JSONObject();
+                    try{//update the log of the file to remove old node hash
+                        logData = readJson(logFilePath);
+                        JSONArray downloadArray = logData.getJSONArray("downloaded_locations");
+                        for(int i = 0; i < downloadArray.length();i++){
+                            if(downloadArray.getJSONObject(i).get("node_id").equals(nodeRepository.getCurrentId())){
+                                downloadArray.remove(i);
+                            }
+                        }
+                        logData.put("downloaded_locations",downloadArray);
+                    }catch (Exception e){
+                        System.out.println("Failed to read log file!");
+                        return;
+                    }
                     data.put("fileName", filename);
                     data.put("fileHash", fileHash);
                     data.put("logFileName",logFileName);
-                    data.put("logFile", logJson);
+                    data.put("logFile", logData);
 
                     try {
                         //Send the file
@@ -122,10 +132,8 @@ public class NodeService {
                                 "shutdown_replication",
                                 data
                         );
-
-                        NodeUnicastReceiver.deleteFile(logFileName);
-                        NodeUnicastReceiver.deleteFile(directory+"/"+filename);
-
+                        NodeUnicastReceiver.deleteFile(logFilePath);
+                        NodeUnicastReceiver.deleteFile(replicationPath+"/"+filename);
 
                         System.out.println("Successfully sent " + filename + " and log to previous node.");
                     } catch (CommunicationException e) {
@@ -136,8 +144,34 @@ public class NodeService {
             }
         }
 
+        //Notify owners of local files to remove it if not downloaded.
+        String localPath = "local_files_"+NodeRepository.getInstance().getName();
+        File localDir = new File(localPath);
+        if (localDir.exists() && localDir.isDirectory()) {
+            File[] localFiles = localDir.listFiles();
+            if (localFiles != null) {
+                for (File localFile : localFiles){
+                    JSONObject data = new JSONObject();
+                    String fileName=localFile.getName();
+                    JSONObject location=getFileReplicationLocation(getHash(fileName));
+                    String locationIp = location.getString("ip");
+                    int locationPort = location.getInt("port");
+                    data.put("fileName",fileName);
 
+                    try {
+                        NodeSender.sendUnicastMessage(
+                                locationIp,
+                                locationPort,
+                                "file_replication_deletion",
+                                data
+                        );
+                    }catch (CommunicationException e){
+                        System.out.println("Failed to notify owner of file: "+fileName+" of shutdown.");
+                    }
 
+                }
+            }
+        }
 
         //shutdown
         System.out.println("Shutting down");
@@ -169,118 +203,42 @@ public class NodeService {
         }
 
         // Send HTTP DELETE request to nameserver to remove this node
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/" + currentName);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("DELETE request for '" + currentName + "' successfully sent to " + namingServerIp);
-            } else {
-                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
-            }
-
-            conn.disconnect();
-
-        } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
-            e.printStackTrace();
-        }
-
-
-
+        apiService.deleteNodeRequest(currentName);
 
     }
 
-    public static JSONObject getNeighbours(int id) throws RuntimeException {
+    public static JSONObject getNeighbors(int currentId) throws RuntimeException{
 
-        // Send HTTP DELETE request to nameserver to remove this node
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
+        // Send HTTP GET request to nameserver
+        JSONObject neighbors = apiService.getNeighborsRequest(currentId);
 
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/nb/" + id);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                conn.disconnect();
-
-                // Parse JSON
-                String jsonString = response.toString();
-                return new JSONObject(jsonString);
-
-            } else {
-                System.out.println("GET request failed with response code: " + responseCode);
-                conn.disconnect();
-                throw new RuntimeException("HTTP communication with nameserver failed");
-            }
-
-
-        } catch (Exception e) {
-            System.err.println("Error GET request to " + namingServerIp);
-            e.printStackTrace();
+        if(neighbors!=null){
+            return neighbors;
+        }else{
             throw new RuntimeException();
         }
-
-
     }
 
-    // TODO: refactor to API wrapper
-    public static JSONObject getFileReplicationLocation(int filehash) throws RuntimeException {
+    public static JSONObject getFileReplicationLocation(int filehash) {
         int currentHash = nodeRepository.getCurrentId();
-        // Send HTTP DELETE request to nameserver to remove this node
         String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
+        String path = ":8080/api/file/location/" + currentHash+"/"+filehash;
+        return apiService.sendServerGetRequest(namingServerIp,path);
+    }
 
-            URL url = new URL("http://" + namingServerIp + ":8080/api/file/location/" + currentHash+"/"+filehash);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                conn.disconnect();
-
-                // Parse JSON
-                String jsonString = response.toString();
-                return new JSONObject(jsonString);
-
-            } else {
-                System.out.println("GET request failed with response code: " + responseCode);
-                conn.disconnect();
-                throw new RuntimeException("HTTP communication with nameserver failed");
-            }
-
-
-        } catch (Exception e) {
-            System.err.println("Error GET request to " + namingServerIp);
-            e.printStackTrace();
-            throw new RuntimeException();
+    private static  JSONObject readJson(String filePath) throws Exception {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new Exception("File not found");
         }
+        try (FileReader reader = new FileReader(file)) {
+            // Parse JSON
+            return  new JSONObject(new JSONTokener(reader));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            }
+        return null;
     }
 
 }

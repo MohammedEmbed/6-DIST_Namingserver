@@ -66,10 +66,10 @@ public class FileMonitor extends Thread {
                             if(!paintMap.get(key)){
                                 // New location
                                 System.out.println("[File monitor] Deleted file discover: send replication delete request");
-                                JSONObject data = NodeService.getFileReplicationLocation(key);
+                                JSONObject fileLocation = NodeService.getFileReplicationLocation(key);
                                 JSONObject toSendData = new JSONObject();
                                 toSendData.put("fileName",knownFiles.get(key));
-                                NodeSender.sendUnicastMessage(data.getString("ip"), data.getInt("port"),"file_replication_deletion", toSendData);
+                                NodeSender.sendUnicastMessage(fileLocation.getString("ip"), fileLocation.getInt("port"),"file_replication_deletion", toSendData);
                                 knownFiles.remove(key);
                             }
                         }

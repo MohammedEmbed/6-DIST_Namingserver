@@ -4,6 +4,7 @@ import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -116,12 +117,13 @@ public class NodeUnicastReceiver extends Thread {
                         logReplication(fileName,NodeService.getHash(source.getString("name")));
                         break;
 
-                    case "shutdown_replication":// The node receives a file from a node that will shut down
+                    case "shutdown_replication"://A node that will shut down passes down a replicated file and log
                         String nameofFile = data.getString("fileName");
                         int fileHash2 =data.getInt("fileHash");
-                        if(FileMonitor.getKnownFiles().containsKey(fileHash2)) {//Current node has file stored locally -> send it to previous node
+                        Neighbor previousNode = nodeRepository.getPrevious();
+                        if(FileMonitor.getKnownFiles().containsKey(fileHash2) &!source.getString("ip").equals(previousNode.getIp())) {
+                            //Current node has file stored locally -> send it to previous node (unless last node in the system)
                             System.out.println("Edge case: file sent to previous node.");
-                            Neighbor previousNode = nodeRepository.getPrevious();
                             NodeSender.sendFile(previousNode.getIp(), previousNode.getPort(), nameofFile);
                         }else {
                             receiveFile(inputStream, nameofFile);
@@ -129,9 +131,13 @@ public class NodeUnicastReceiver extends Thread {
                             JSONObject logData = data.getJSONObject("logFile");
                             JSONObject downloadedInfo = new JSONObject();
                             downloadedInfo.put("node_id", nodeRepository.getCurrentId());
-                            logData.put("downloaded_locations", downloadedInfo);
+                            JSONArray downloadArray = logData.getJSONArray("downloaded_locations");
+                            downloadArray.put(downloadedInfo);
+                            logData.put("downloaded_locations", downloadArray);
                             String logFileName = data.getString("logFileName");
-                            File logFile = new File(logFileName);
+                            String logFilePath = "logs_" + nodeRepository.getName() + "/" + logFileName;
+                            File logFile = new File(logFilePath);
+
                             try (FileWriter fileWriter = new FileWriter(logFile);) {
                                 fileWriter.write(logData.toString(2));
                                 System.out.println("Created replication log: " + logFileName);
@@ -139,9 +145,8 @@ public class NodeUnicastReceiver extends Thread {
                                 System.err.println("Failed to create replication log: " + logFileName);
                                 e.printStackTrace();
                             }
-
-                            break;
                         }
+                            break;
 
                     case "file_replication_deletion":
 
@@ -149,8 +154,8 @@ public class NodeUnicastReceiver extends Thread {
                         System.out.printf("[file_replication_deletion] file %s received from %s : %s \n",fileName2,source.getString("ip"),source.getInt("port"));
                         String filePath = "replicated_files_"+nodeRepository.getName()+"/"+fileName2;
                         deleteFile(filePath);
-                        String logFileName = "logs_"+nodeRepository.getName() + "/replication_log_" + NodeService.getHash(fileName2) + ".json";
-                        deleteFile(logFileName);
+                        String logFilePath = "logs_"+nodeRepository.getName() + "/replication_log_" + NodeService.getHash(fileName2) + ".json";
+                        deleteFile(logFilePath);
                         break;
 
                     case "file_list_sync":
@@ -198,6 +203,7 @@ public class NodeUnicastReceiver extends Thread {
                             System.out.printf("[lock_response] Lock denied for file %d. Will retry later.%n", lockedFileHash);
                         }
                         break;
+
 
                 }
 
@@ -264,8 +270,10 @@ public class NodeUnicastReceiver extends Thread {
             ownerInfo.put("node_id", originalOwnerId);
             logData.put("original_owner", ownerInfo);
 
-            JSONObject downloadedInfo = new JSONObject();
-            downloadedInfo.put("node_id", nodeRepository.getCurrentId());
+            JSONArray downloadedInfo = new JSONArray();
+            JSONObject downloadedInfoEntry = new JSONObject();
+            downloadedInfoEntry.put("node_id", nodeRepository.getCurrentId());
+            downloadedInfo.put(downloadedInfoEntry);
             logData.put("downloaded_locations", downloadedInfo);
 
             try (FileWriter fileWriter = new FileWriter(logFile);) {
@@ -275,11 +283,21 @@ public class NodeUnicastReceiver extends Thread {
                 System.err.println("Failed to create replication log: " + logFileName);
                 e.printStackTrace();
             }
+
         } else { // When the logfile already exists and this is just a new download of the file
             try (FileReader fileReader = new FileReader(logFile);) {
                 JSONObject jsonObject = new JSONObject(new JSONTokener(fileReader));
-                jsonObject.getJSONObject("downloaded_locations").append("node_id", nodeRepository.getCurrentId());
+                JSONObject newEntry = new JSONObject();
+                newEntry.put("node_id",nodeRepository.getCurrentId());
+                jsonObject.getJSONArray("downloaded_locations").put(newEntry);
 
+                try (FileWriter fileWriter = new FileWriter(logFile);) {
+                    fileWriter.write(jsonObject.toString(2));
+                    System.out.println("Created replication log: " + logFileName);
+                } catch (IOException e) {
+                    System.err.println("Failed to create replication log: " + logFileName);
+                    e.printStackTrace();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

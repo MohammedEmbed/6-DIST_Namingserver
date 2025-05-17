@@ -39,7 +39,7 @@ for %%A in (%IP_PORT_LIST%) do (
         set SERVER_PORT=%%C
         set SERVER_IP=%%B
         set SERVER_NAME=%%D
-        set NS_IP=143.169.218.121
+        set NS_IP=143.169.213.125
         set NS_PORT=8090
         set /a AGENT_PORT=!SERVER_PORT!+1
 

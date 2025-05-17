@@ -5,6 +5,7 @@ import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.service.ApiService;
 import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 
@@ -13,7 +14,7 @@ import java.net.URL;
 
 public class Failure {
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
-
+    private final static ApiService apiService = new ApiService();
     public static void healthCheck(){
         // https://stackoverflow.com/a/29460716
         try{
@@ -48,7 +49,7 @@ public class Failure {
 
     public static void handleFailure(int hash){
         // Request prev and next node parameters of failed node from NS
-        JSONObject nbData = NodeService.getNeighbours(hash);
+        JSONObject nbData = NodeService.getNeighbors(hash);
         JSONObject next = nbData.getJSONObject("next");
         JSONObject prev = nbData.getJSONObject("previous");
 
@@ -72,27 +73,8 @@ public class Failure {
         }
 
         // Send HTTP DELETE request to nameserver to remove this node
-        String namingServerIp = nodeRepository.getNamingServerIp();
-        try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/hash/" + hash);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Content-Type", "application/json");
+        apiService.deleteNodeRequestFromHash(hash);
 
-            int responseCode = conn.getResponseCode();
-            if (responseCode == 200) {
-                System.out.println("DELETE request for hash'" +hash  + "' successfully sent to " + namingServerIp);
-            } else {
-                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
-            }
-
-            conn.disconnect();
-
-        } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
-            e.printStackTrace();
-        }
     }
 
 
