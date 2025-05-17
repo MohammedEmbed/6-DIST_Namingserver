@@ -12,6 +12,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import jade.core.*;
 import jade.core.Runtime;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,13 +23,23 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 public class NamenodeApplication {
 
-    public static void main(String[] args) throws InterruptedException{
-        String ip = System.getenv("SERVER_IP");
-        int port = Integer.parseInt(System.getenv("SERVER_PORT"));
-        String hostName = System.getenv("SERVER_NAME");
-        System.out.println("Node started with IP-address: " + ip + ", Port: " + port + " and Name: " + hostName);
+    public static void main(String[] args) throws InterruptedException, UnknownHostException {
+        boolean isRemote = Boolean.parseBoolean(System.getProperty("REMOTE"));
+        String ip;
+        int httpPort;
+        if (isRemote){
+             ip = InetAddress.getLocalHost().getHostAddress();
+             httpPort = Integer.parseInt(System.getProperty("NS_HTTP_PORT"));
+        } else{
+            ip = System.getProperty("SERVER_IP");
+            httpPort = 8080;
+        }
+        int port = Integer.parseInt(System.getProperty("SERVER_PORT"));
 
-        NodeService.startUp(ip, port, hostName);
+        String hostName = System.getProperty("SERVER_NAME");
+        System.out.println("Node started with IP-address: " + ip + ", Port: " + port + ",http port: "+httpPort+ " and Name: " + hostName);
+
+        NodeService.startUp(ip, port,httpPort ,hostName);
 
         // Initialize JADE container
         Runtime rt = jade.core.Runtime.instance();

@@ -21,7 +21,7 @@ public class NodeService {
     private final static ApiService apiService = new ApiService();
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
-    public static void startUp(String ip, int port, String name) {
+    public static void startUp(String ip, int port,int httpPort, String name) {
         Integer id = getHash(name);
         NodeRepository repo = NodeRepository.getInstance();
         repo.setCurrentId(id);
@@ -30,6 +30,7 @@ public class NodeService {
         repo.setName(name);
         repo.setNext(id);
         repo.setPrevious(id);
+        repo.setNamingServerHTTPPort(httpPort);
 
     }
 
@@ -222,7 +223,7 @@ public class NodeService {
     public static JSONObject getFileReplicationLocation(int filehash) {
         int currentHash = nodeRepository.getCurrentId();
         String namingServerIp = nodeRepository.getNamingServerIp();
-        String path = ":8080/api/file/location/" + currentHash+"/"+filehash;
+        String path = "/api/file/location/" + currentHash+"/"+filehash;
         return apiService.sendServerGetRequest(namingServerIp,path);
     }
 

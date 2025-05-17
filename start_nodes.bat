@@ -31,24 +31,33 @@ if errorlevel 1 (
 
 :: Step 2: Run instances with different IPs and ports
 echo Starting servers and agents
-
+set NS_IP="127.0.0.5"
+set NS_PORT=8090
 for %%A in (%IP_PORT_LIST%) do (
     :: Split the pair into IP and Port using the colon (":") delimiter
     for /f "tokens=1,2,3 delims=:" %%B in ("%%A") do (
-        echo IP: %%B, Port: %%C, Name: %%D
-        set SERVER_PORT=%%C
-        set SERVER_IP=%%B
-        set SERVER_NAME=%%D
-        set NS_IP=143.169.213.125
-        set NS_PORT=8090
-        set /a AGENT_PORT=!SERVER_PORT!+1
+@REM         echo IP: %%B, Port: %%C, Name: %%D
+@REM         set SERVER_PORT=%%C
+@REM         set SERVER_IP=%%B
+@REM         set SERVER_NAME=%%D
+@REM         set NS_IP=143.169.213.125
+@REM         set NS_PORT=8090
+@REM         set /a AGENT_PORT=!SERVER_PORT!+1
+@REM
+@REM         if not exist "local_files_%%D" mkdir "local_files_%%D"
+@REM         if not exist "logs_%%D" mkdir "logs_%%D"
+@REM         if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
+@REM         start "%%D - %%B:%%C" cmd /k "java -jar %JAR_FILE%"
+                echo IP: %%B, Port: %%C, Name: %%D
+                set /a AGENT_PORT=%%C + 1
 
-        if not exist "local_files_%%D" mkdir "local_files_%%D"
-        if not exist "logs_%%D" mkdir "logs_%%D"
-        if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
-        start "%%D - %%B:%%C" cmd /k "java -jar %JAR_FILE%"
-        echo agent port: !AGENT_PORT!
-        start "%%D - Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT!"
+                if not exist "local_files_%%D" mkdir "local_files_%%D"
+                if not exist "logs_%%D" mkdir "logs_%%D"
+                if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
+
+                start "%%D - %%B:%%C" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false -jar %JAR_FILE%"
+@REM         echo agent port: !AGENT_PORT!
+@REM         start "%%D - Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT!"
 
     )
 )

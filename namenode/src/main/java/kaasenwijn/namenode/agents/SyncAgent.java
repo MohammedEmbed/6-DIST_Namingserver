@@ -14,7 +14,7 @@ public class SyncAgent extends Agent {
 
     @Override
     protected void setup() {
-        System.out.println(getLocalName() + " is starting for node: "+ System.getenv("SERVER_NAME")+", address: "+System.getenv("SERVER_IP")+":"+System.getenv("SERVER_PORT"));
+        System.out.println(getLocalName() + " is starting for node: "+ System.getProperty("SERVER_NAME")+", address: "+System.getProperty("SERVER_IP")+":"+System.getProperty("SERVER_PORT"));
 
         HashMap<Integer, String> agentKnownFiles = FileMonitor.getKnownFiles();
 

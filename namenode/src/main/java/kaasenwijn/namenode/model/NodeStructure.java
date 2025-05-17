@@ -14,6 +14,8 @@ public class NodeStructure {
 
     public int namingServerPort;
 
+    public int namingServerHTTPPort;
+
     public String name;
 
 

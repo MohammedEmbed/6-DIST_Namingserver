@@ -16,8 +16,17 @@ public class NamingserverApplication {
     public static void main(String[] args) throws UnknownHostException {
         // Start web server
         SpringApplication.run(NamingserverApplication.class, args);
-        String ip = InetAddress.getLocalHost().getHostAddress();
-        int port = 8090;
+        String ip;
+        boolean isRemote = Boolean.parseBoolean(System.getProperty("REMOTE"));
+        int port;
+        if (isRemote){
+            port = Integer.parseInt(System.getProperty("NS_PORT"));
+            ip = InetAddress.getLocalHost().getHostAddress();
+        } else{
+            System.out.println("not remote yess");
+            port = 8090;
+            ip = "127.0.0.5";
+        }
         String hostName = "NamingServer";
         System.out.println("Node started with IP-address: "+ip+", Port: "+port+" and Name: "+hostName);
         NameService.startUp(ip,port,hostName);

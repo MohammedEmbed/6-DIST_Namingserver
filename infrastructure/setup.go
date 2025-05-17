@@ -10,20 +10,31 @@ import (
 	"sync"
 )
 
+var NamingServer = L.Node{
+	Host:       "6dist.idlab.uantwerpen.be",
+	Port:       2013,
+	Name:       "NamingServer",
+	NSPort:     8090,
+	NSHTTPPort: 8091,
+}
 var nodes = []L.Node{
 	{
-		Host:   "6dist.idlab.uantwerpen.be",
-		Port:   2011,
-		Name:   "Warre",
-		NSIP:   "127.0.0.1",
-		NSPort: 8090,
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2011,
+		Name:       "Warre",
+		NPort:      8010,
+		NSIP:       "172.18.0.5",
+		NSPort:     8090,
+		NSHTTPPort: 8091,
 	},
 	{
-		Host:   "6dist.idlab.uantwerpen.be",
-		Port:   2012,
-		Name:   "Arvo",
-		NSIP:   "127.0.0.1",
-		NSPort: 8090,
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2012,
+		Name:       "Arvo",
+		NPort:      8011,
+		NSIP:       "172.18.0.5",
+		NSPort:     8090,
+		NSHTTPPort: 8091,
 	},
 	//{
 	//    Host:   "6dist.idlab.uantwerpen.be",
@@ -37,8 +48,10 @@ var nodes = []L.Node{
 func main() {
 	// Define where the node project is located: on local host
 	projectDir, _ := filepath.Abs("../namenode")
+	projectDirServer, _ := filepath.Abs("../nameserver")
 	// Location JAR file: the same for all nodes
 	jarFile := filepath.Join(projectDir, "target", "namenode-0.0.1-SNAPSHOT.jar")
+	jarFileServer := filepath.Join(projectDirServer, "target", "Namingserver-0.0.1-SNAPSHOT.jar")
 
 	// Read flags
 	build := flag.Bool("build", false, "Build java jar file and upload it to the remote host")
@@ -48,15 +61,21 @@ func main() {
 	// Parse CLI flags
 	flag.Parse()
 
-	if *killAll {
-
-	}
 	// Call the installer if flag is true
 	if *build {
 		// Build the jar file locally
-		L.BuildJavaJar(projectDir)
+		L.BuildJavaJar(projectDir, true)
+		L.BuildJavaJar(projectDirServer, false)
 	} else {
 		log.Println("Skipping JAR build installation.")
+	}
+
+	if *killAll {
+		L.KillRemoteJar(NamingServer)
+	} else {
+		// Setup Naming server
+		L.SetupRemoteHost(NamingServer, *build, *installDeps, jarFileServer, false)
+		StartLogging(NamingServer)
 	}
 
 	// Configure all nodes
@@ -69,7 +88,7 @@ func main() {
 			if *killAll {
 				L.KillRemoteJar(n)
 			} else {
-				L.SetupRemoteHost(n, *build, *installDeps, jarFile)
+				L.SetupRemoteHost(n, *build, *installDeps, jarFile, true)
 				StartLogging(n)
 			}
 

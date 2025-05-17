@@ -51,7 +51,7 @@ public class Neighbor {
      */
     private String getIpFromNS() {
         // Send HTTP GET request to nameserver to receive ip of the node
-        String path = ":8080/api/node/ip/" + this.Id;
+        String path = "/api/node/ip/" + this.Id;
         JSONObject json = apiService.getServerObjectRequest(path);
 
         if (json != null) {

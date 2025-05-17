@@ -15,7 +15,7 @@ public class ApiService {
     private int sendServerDeleteRequest(String namingServerIp, String path){
 
         try {
-            URL url = new URL("http://" + namingServerIp + path);
+            URL url = new URL("http://" + namingServerIp +":"+nodeRepository.getNamingServerHTTPPort() + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("DELETE");
@@ -37,7 +37,8 @@ public class ApiService {
     public JSONObject sendServerGetRequest(String namingServerIp, String path){
 
         try {
-            URL url = new URL("http://" + namingServerIp + path);
+            System.out.println("server GET request too: "+"http://" + namingServerIp +":"+nodeRepository.getNamingServerHTTPPort() + path);
+            URL url = new URL("http://" + namingServerIp +":"+nodeRepository.getNamingServerHTTPPort() + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("GET");
@@ -74,7 +75,7 @@ public class ApiService {
 
     private int sendServerPostRequest(String filename, File file, String targetIp, String path){
         try {
-            URL url = new URL("http://" + targetIp + path);
+            URL url = new URL("http://" + targetIp+":"+nodeRepository.getNamingServerHTTPPort()  + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
@@ -98,7 +99,7 @@ public class ApiService {
 
     public void deleteNodeRequest(String currentName) {
         String namingServerIp = nodeRepository.getNamingServerIp();
-        String path = ":8080/api/node/" + currentName;
+        String path = "/api/node/" + currentName;
         int responseCode = sendServerDeleteRequest(namingServerIp, path);
         if (responseCode == 200) {
             System.out.println("DELETE request for '" + currentName + "' successfully sent to " + namingServerIp);
@@ -111,7 +112,7 @@ public class ApiService {
     public void deleteNodeRequestFromHash(int hash){
         String namingServerIp = nodeRepository.getNamingServerIp();
         try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/hash/" + hash);
+            URL url = new URL("http://" + namingServerIp + ":"+nodeRepository.getNamingServerHTTPPort() + "/api/node/hash/" + hash);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("DELETE");
@@ -134,7 +135,7 @@ public class ApiService {
 
     public JSONObject getNeighborsRequest(int currentId){
         String namingServerIp = nodeRepository.getNamingServerIp();
-        String path = ":8080/api/node/nb/" + currentId;
+        String path = "/api/node/nb/" + currentId;
         return sendServerGetRequest(namingServerIp,path);
     }
 
@@ -145,7 +146,7 @@ public class ApiService {
     }
 
     public void postFileRequest(String filename,File file, String targetIp){
-        String path = ":8080/api/node/files/replicate";
+        String path = "/api/node/files/replicate";
         int responseCode = sendServerPostRequest(filename, file, targetIp, path);
         if (responseCode == 200) {
             System.out.println(filename +"POST request successfully transferred "+ filename +" to "+targetIp);
@@ -156,7 +157,7 @@ public class ApiService {
 
     public boolean checkFileRequest(String nodeIp, String filename){
         try {
-            URL url = new URL("http://" + nodeIp + ":8080/api/node/files/has/" + filename);
+            URL url = new URL("http://" + nodeIp + ":"+nodeRepository.getNamingServerHTTPPort() +"/api/node/files/has/" + filename);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(1000);

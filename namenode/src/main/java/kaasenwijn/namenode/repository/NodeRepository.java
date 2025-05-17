@@ -10,8 +10,8 @@ public class NodeRepository {
 
     private NodeRepository() {
         nodeStructure = new NodeStructure();
-        nodeStructure.namingServerIp = System.getenv("NS_IP");
-        nodeStructure.namingServerPort = Integer.parseInt(System.getenv("NS_PORT"));
+        nodeStructure.namingServerIp = System.getProperty("NS_IP");
+        nodeStructure.namingServerPort = Integer.parseInt(System.getProperty("NS_PORT"));
 
     }
 
@@ -88,4 +88,11 @@ public class NodeRepository {
     public int getNamingServerPort(){
         return nodeStructure.namingServerPort;
     }
+    public int getNamingServerHTTPPort(){
+        return nodeStructure.namingServerHTTPPort;
+    }
+    public void setNamingServerHTTPPort(int port){
+        nodeStructure.namingServerHTTPPort = port;
+    }
+
 }

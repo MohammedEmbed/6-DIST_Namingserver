@@ -88,9 +88,20 @@ func RemoteExecuteCmd(cmd string, sshClient *ssh.Client) {
 	log.Println("Remote execution complete.")
 }
 
-func BuildJavaJar(projectDir string) {
+func BuildJavaJar(projectDir string, isNode bool) {
 	fmt.Println("Building Maven project...")
 
+	originalDir, err1 := os.Getwd()
+	// Defer returning to the original working directory
+	defer func() {
+		if err2 := os.Chdir(originalDir); err2 != nil {
+			log.Printf("Warning: Failed to return to original directory: %v", err2)
+		}
+	}()
+
+	if err1 != nil {
+		log.Fatalf("Failed to get current directory: %v", err1)
+	}
 	// Step 1: Change working directory
 	err := os.Chdir(projectDir)
 	if err != nil {
@@ -108,18 +119,20 @@ func BuildJavaJar(projectDir string) {
 	}
 
 	// Step 3: Install jade.jar to local Maven repo
-	installCmd := exec.Command("mvn", "install:install-file",
-		"-Dfile=jade/lib/jade.jar",
-		"-DgroupId=com.tilab.jade",
-		"-DartifactId=jade",
-		"-Dversion=4.6.0",
-		"-Dpackaging=jar",
-	)
-	installCmd.Stdout = os.Stdout
-	installCmd.Stderr = os.Stderr
-	fmt.Println("Installing jade.jar to local Maven repository...")
-	if err := installCmd.Run(); err != nil {
-		log.Fatalf("Maven install failed: %v", err)
+	if isNode {
+		installCmd := exec.Command("mvn", "install:install-file",
+			"-Dfile=jade/lib/jade.jar",
+			"-DgroupId=com.tilab.jade",
+			"-DartifactId=jade",
+			"-Dversion=4.6.0",
+			"-Dpackaging=jar",
+		)
+		installCmd.Stdout = os.Stdout
+		installCmd.Stderr = os.Stderr
+		fmt.Println("Installing jade.jar to local Maven repository...")
+		if err := installCmd.Run(); err != nil {
+			log.Fatalf("Maven install failed: %v", err)
+		}
 	}
 
 	// Step 4: Clean and package the project
@@ -170,20 +183,48 @@ func SendJAR(localJarPath string, scpClient scp.Client) {
 	log.Println("Upload complete.")
 }
 
-func RunJar(hostInfo Node, sshClient *ssh.Client) {
+func RunJarNode(hostInfo Node, sshClient *ssh.Client) {
 	//Run the JAR file in a new Command Prompt window
-	envString := "SERVER_PORT=" + strconv.Itoa(hostInfo.Port) + " " +
-		"SERVER_IP=" + hostInfo.Host + " " +
-		"SERVER_NAME=" + hostInfo.Name + " " +
-		"NS_IP=" + hostInfo.NSIP + " " +
-		"NS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
-		"REMOTE=true"
+	//envString := "SERVER_PORT=" + strconv.Itoa(hostInfo.NPort) + " " +
+	//	"NS_HTTP_PORT=" + strconv.Itoa(hostInfo.NSHTTPPort) + " " +
+	//	"SERVER_NAME=" + hostInfo.Name + " " +
+	//	"NS_IP=" + hostInfo.NSIP + " " +
+	//	"NS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
+	//	"REMOTE=true"
+	//
+	//cmd := envString + " java -Dname=" + hostInfo.Name + " -jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
 
-	cmd := envString + " java -Dname=" + hostInfo.Name + " -jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
+	cmd := fmt.Sprintf(
+		"java -DREMOTE=true -DNS_PORT=%d -DNS_HTTP_PORT=%d -DSERVER_PORT=%d -DSERVER_NAME=%s -DNS_IP=%s -jar %s >> %slogs_%s.log 2>&1 &",
+		hostInfo.NSPort,
+		hostInfo.NSHTTPPort,
+		hostInfo.NPort,
+		hostInfo.Name,
+		hostInfo.NSIP,
+		remoteJarPath,
+		logFilePath,
+		hostInfo.Name,
+	)
+
 	RemoteExecuteCmd(cmd, sshClient)
 }
 
-func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string) {
+func RunJarNS(hostInfo Node, sshClient *ssh.Client) {
+	//Run the JAR file in a new Command Prompt window
+	//envString := "REMOTE=true NS_PORT=" + strconv.Itoa(hostInfo.NSPort)
+	//cmd := envString + " java -Dserver.port=" + strconv.Itoa(hostInfo.NSHTTPPort) + " -Dname=" + hostInfo.Name + " -jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
+
+	cmd := "java " +
+		"-DREMOTE=true " +
+		"-DNS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
+		"-Dserver.port=" + strconv.Itoa(hostInfo.NSHTTPPort) + " " +
+		"-Dname=" + hostInfo.Name + " " +
+		"-jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
+
+	RemoteExecuteCmd(cmd, sshClient)
+}
+
+func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string, isNode bool) {
 	fullHost := hostInfo.Host + ":" + strconv.Itoa(hostInfo.Port)
 	if build {
 		// Create SCP client using SSH private key
@@ -205,9 +246,12 @@ func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string) {
 	} else {
 		log.Println("Skipping dependency installation.")
 	}
-
-	RunJar(hostInfo, sshClient)
-
+	if isNode {
+		CreateDirectories(hostInfo, sshClient)
+		RunJarNode(hostInfo, sshClient)
+	} else {
+		RunJarNS(hostInfo, sshClient)
+	}
 }
 
 func StreamRemoteLogs(hostInfo Node) error {
@@ -227,6 +271,12 @@ func StreamRemoteLogs(hostInfo Node) error {
 	return session.Run("tail -f " + logFilePath + "logs_" + hostInfo.Name + ".log")
 }
 
+func DeleteLogFile(hostInfo Node, sshClient *ssh.Client) {
+	logFile := fmt.Sprintf("%slogs_%s.log", logFilePath, hostInfo.Name)
+	cmd := fmt.Sprintf(`rm -f "%s"`, logFile)
+	RemoteExecuteCmd(cmd, sshClient)
+}
+
 func KillRemoteJar(hostInfo Node) {
 	fullHost := hostInfo.Host + ":" + strconv.Itoa(hostInfo.Port)
 	// Manually create SSH client (separate from SCP)
@@ -234,4 +284,14 @@ func KillRemoteJar(hostInfo Node) {
 	defer sshClient.Close()
 	fullCmd := "pkill -f " + hostInfo.Name
 	RemoteExecuteCmd(fullCmd, sshClient)
+	DeleteLogFile(hostInfo, sshClient)
+}
+
+func CreateDirectories(hostInfo Node, sshClient *ssh.Client) {
+	cmd := fmt.Sprintf(`
+		mkdir -p "local_files_%[1]s" && \
+		mkdir -p "logs_%[1]s" && \
+		mkdir -p "replicated_files_%[1]s"
+	`, hostInfo.Name)
+	RemoteExecuteCmd(cmd, sshClient)
 }
