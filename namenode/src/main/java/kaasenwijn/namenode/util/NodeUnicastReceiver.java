@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import static kaasenwijn.namenode.util.Failure.initiateFailureAgent;
+
 public class NodeUnicastReceiver extends Thread {
     private static final int UNICAST_SENDER_PORT = 9090; // Node unicast sender port = flipped t.o.v. nameServer
 
@@ -82,6 +84,8 @@ public class NodeUnicastReceiver extends Thread {
                     case "update_next_id":
                         if (!data.isEmpty()) {
                             int nextId = data.getInt("next_id");
+                            // TODO: REMOVE this is just for testing
+                            initiateFailureAgent(NodeService.getHash(source.getString("name")));
                             nodeRepository.setNext(nextId);
                             System.out.println("[update_next_id] New nextid: " + nextId);
                         }
@@ -90,6 +94,8 @@ public class NodeUnicastReceiver extends Thread {
                     case "update_previous_id":
                         if (!data.isEmpty()) {
                             int previousId = data.getInt("previous_id");
+                            // TODO: REMOVE this is just for testing
+                            initiateFailureAgent(NodeService.getHash(source.getString("name")));
                             nodeRepository.setPrevious(previousId);
                             System.out.println("[update_previous_id] New previousid: " + previousId);
                         }

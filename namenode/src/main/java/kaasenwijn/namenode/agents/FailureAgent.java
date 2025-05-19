@@ -40,11 +40,6 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
     protected void setup() {
         initialNodeId = nodeRepository.getCurrentId();
         System.out.println("[FailureAgent] Started at node: " + initialNodeId);
-
-        executeAgent();
-    }
-
-    protected void executeAgent() {
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
             failedNodeId = (int) args[0]; //Todo: Check
@@ -54,6 +49,10 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
             doDelete();
             return;
         }
+        executeAgent();
+    }
+
+    protected void executeAgent() {
         // Terminate the agent if it has passed all nodes
         if (newOwnerId == initialNodeId) {
             doDelete();
@@ -104,7 +103,8 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
 
     @Override
     protected void afterMove() {
-        System.out.println("[FailureAgent] "+getLocalName() + " is just arrived to this location: "+nodeRepository.getCurrentId());
+        newOwnerId = nodeRepository.getCurrentId();
+        System.out.println("[FailureAgent] " + getLocalName() + " is just arrived to this location: " + newOwnerId);
         executeAgent();
     }
 }

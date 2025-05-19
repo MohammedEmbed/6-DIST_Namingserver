@@ -2,6 +2,7 @@ package kaasenwijn.namenode;
 
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
+import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.service.FileMonitor;
 import kaasenwijn.namenode.service.NodeService;
 import kaasenwijn.namenode.util.Failure;
@@ -44,13 +45,16 @@ public class NamenodeApplication {
         // Initialize JADE container
         Runtime rt = jade.core.Runtime.instance();
         ProfileImpl profile = new ProfileImpl();
-        profile.setParameter("main", "false");
-        profile.setParameter("containerName", hostName);
-        AgentContainer container = rt.createAgentContainer(profile);
+        profile.setParameter(Profile.CONTAINER_NAME, hostName);
+        profile.setParameter(Profile.MAIN_HOST, ip);
+        profile.setParameter(Profile.MAIN_PORT, String.valueOf(port+1));
+        // Store container to be used for the FailureAgent
+        NodeRepository nodeRepository = NodeRepository.getInstance();
+        nodeRepository.setAgentContainer(rt.createAgentContainer(profile));
 
         // Start SyncAgent on system launch
         try {
-            AgentController syncAgent = container.createNewAgent(
+            AgentController syncAgent = nodeRepository.getAgentContainer().createNewAgent(
                     "SyncAgent",
                     "kaasenwijn.namenode.agents.SyncAgent",
                     null

@@ -1,5 +1,6 @@
 package kaasenwijn.namenode.repository;
 
+import jade.wrapper.AgentContainer;
 import kaasenwijn.namenode.model.NodeStructure;
 import kaasenwijn.namenode.model.Neighbor;
 
@@ -93,6 +94,13 @@ public class NodeRepository {
     }
     public void setNamingServerHTTPPort(int port){
         nodeStructure.namingServerHTTPPort = port;
+    }
+
+    public void setAgentContainer(AgentContainer container){
+        nodeStructure.agentContainer = container;
+    }
+    public AgentContainer getAgentContainer(){
+        return nodeStructure.agentContainer;
     }
 
 }
