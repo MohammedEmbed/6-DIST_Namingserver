@@ -38,6 +38,13 @@ public class SyncAgent extends Agent {
         } catch (Exception e) {
             System.err.println("[SyncAgent] DF registration failed.");
         }
+        /// Example: How Another Agent Finds It
+        ///DFAgentDescription template = new DFAgentDescription();
+        /// ServiceDescription sd = new ServiceDescription();
+        /// sd.setType("sync-agent");
+        /// template.addServices(sd);
+        ///
+        /// DFAgentDescription[] result = DFService.search(this, template);
 
         addBehaviour(new TickerBehaviour(this, SYNC_INTERVAL_MS) { // 15 second interval
             @Override

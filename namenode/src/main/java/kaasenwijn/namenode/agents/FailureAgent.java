@@ -34,7 +34,7 @@ public class FailureAgent extends Agent {
     protected void setup() {
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
-            failedNodeId = (int) args[0];
+            failedNodeId = (int) args[0]; //Todo: Check
             newOwnerId = (int) args[1];
         } else {
             System.err.println("FailureAgent requires 2 arguments: failedNodeId and newOwnerId.");
