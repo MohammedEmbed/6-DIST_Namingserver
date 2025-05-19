@@ -56,8 +56,8 @@ for %%A in (%IP_PORT_LIST%) do (
                 if not exist "replicated_files_%%D" mkdir "replicated_files_%%D"
 
                 start "%%D - %%B:%%C" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false -jar %JAR_FILE%"
-@REM         echo agent port: !AGENT_PORT!
-@REM         start "%%D - Sync agent" cmd /k "java -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT!"
+        echo agent port: !AGENT_PORT!
+        start "%%D - Sync agent" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false  -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT! "
 
     )
 )
