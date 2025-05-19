@@ -12,9 +12,10 @@ import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.model.Neighbor;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class SyncAgent extends Agent {
+public class SyncAgent extends Agent implements Runnable, Serializable {
     private static final long SYNC_INTERVAL_MS = 15000;
 
     @Override

@@ -1,16 +1,21 @@
 package kaasenwijn.namenode.agents;
 
 import jade.core.Agent;
+import jade.core.Location;
 import jade.core.behaviours.Behaviour;
+import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 
+import java.io.Serializable;
+
+// Example mobile agent: https://github.com/ekiwi/jade-mirror/tree/master/src/examples/mobile
 
 /**
  * Failure agent is started as soon as a node failure is detected. The responsibility of this agent is to
  * 1. transfer all the files from a failed node to the new owner, and to
  * 2. update the whole file list.
  */
-public class FailureAgent extends Agent {
+public class FailureAgent extends Agent implements Runnable, Serializable {
 /*
     To develop Failure Agent class that implements the Runnable and Serializable interface:
     - The failing node id is added to the constructor,
@@ -27,11 +32,19 @@ public class FailureAgent extends Agent {
 
     protected int failedNodeId;
     protected int newOwnerId;
+    protected int initialNodeId;
 
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
     @Override
     protected void setup() {
+        initialNodeId = nodeRepository.getCurrentId();
+        System.out.println("[FailureAgent] Started at node: " + initialNodeId);
+
+        executeAgent();
+    }
+
+    protected void executeAgent() {
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
             failedNodeId = (int) args[0]; //Todo: Check
@@ -41,12 +54,57 @@ public class FailureAgent extends Agent {
             doDelete();
             return;
         }
-        // Add agent behaviour
-        Behaviour b = new FailureBehaviour(this);
-        addBehaviour(b);
-
-        System.out.println("[FailureAgent] Started at node: " + NodeRepository.getInstance().getCurrentId());
-
+        // Terminate the agent if it has passed all nodes
+        if (newOwnerId == initialNodeId) {
+            doDelete();
+        } else {
+            // Add agent behaviour
+            Behaviour b = new FailureBehaviour(this);
+            addBehaviour(b);
+        }
     }
 
+    public void migrateToNextNode() {
+        Neighbor next = NodeRepository.getInstance().getNext();
+        Location nextLocation = getNextLocation(next);
+        System.out.println("[FailureAgent] Done here. Migrating to next node: " + next.Id);
+        doMove(nextLocation);
+    }
+
+    private Location getNextLocation(Neighbor next) {
+        // TODO: Do we need an AMS? An agent cannot create locations by itself
+        //  https://jade.tilab.com/doc/programmersguide.pdf 3.7.1 JADE API for agent mobility
+        //  "application agents are not allowed to create their own locations. Instead, they must
+        //  ask the AMS for the list of the available locations and choose one. Alternatively, a JADE agent
+        //  can also request the AMS to tell where (at which location) another agent lives."
+        // TODO: Check if this is a suitable alternative to an AMS
+        return new Location() {
+            @Override
+            public String getID() {
+                return next.Id.toString();
+            }
+
+            @Override
+            public String getName() {
+                return getID(); // TODO: Maybe add a getName to the NS API?
+            }
+
+            @Override
+            public String getProtocol() {
+                return "JADE-IPMT"; // Internal Platform Message Transport
+            }
+
+            @Override
+            public String getAddress() {
+                // Structure: Zadig:1099/JADE.Container-1
+                return next.getIp() + ":" + (next.getPort() + 1) + "/JADE.FailureAgent";
+            }
+        };
+    }
+
+    @Override
+    protected void afterMove() {
+        System.out.println("[FailureAgent] "+getLocalName() + " is just arrived to this location: "+nodeRepository.getCurrentId());
+        executeAgent();
+    }
 }

@@ -1,9 +1,6 @@
 package kaasenwijn.namenode.agents;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import jade.core.*;
@@ -16,7 +13,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 // Based on the DummyAgent
-class FailureBehaviour extends OneShotBehaviour {
+class FailureBehaviour extends OneShotBehaviour implements Serializable {
     private final static NodeRepository nodeRepository = NodeRepository.getInstance();
 
     FailureBehaviour(Agent a) {
@@ -65,16 +62,9 @@ class FailureBehaviour extends OneShotBehaviour {
                 }
             }
 
-            // Move to the next node
-            int nextId = NodeRepository.getInstance().getNextId();
-            Location nextLocation = agent.here(); //TODO
-            System.out.println("[FailureAgent] Done here. Migrating to next node: " + nextId);
-            agent.doMove(nextLocation); // This is a stub. We Need JADE mobility container support.
-
+            agent.migrateToNextNode();
         } else {
             block();
         }
-
     }
-
 }
