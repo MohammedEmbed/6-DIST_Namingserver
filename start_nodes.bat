@@ -12,7 +12,7 @@ set JAR_FILE="%PROJECT_DIR%\target\namenode-0.0.1-SNAPSHOT.jar"
 set "PROPERTIES_FILE=%PROJECT_DIR%\src\main\resources\application.properties"
 
 :: List of IPs and ports to use
-set "IP_PORT_LIST=127.0.0.20:8081:Warre 127.0.0.30:8082:Daan 127.0.0.40:8083:Arvo"
+set "IP_PORT_LIST=127.0.0.20:8081:Warre 127.0.0.30:8083:Daan 127.0.0.40:8085:Arvo"
 
 echo Deleting existing target directory...
 rmdir /s /q "%TARGET_DIR%"
