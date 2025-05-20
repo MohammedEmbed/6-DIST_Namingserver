@@ -85,6 +85,7 @@ public class NodeController {
         return ResponseEntity.ok().body(data);
     }
 
+    // Get the information of a specific node
     @GetMapping("/info/{id}")
     public ResponseEntity<?> GetNodeInfo(@PathVariable int id) {
         if (!ipRepo.ipExists(id)) {
@@ -99,6 +100,7 @@ public class NodeController {
         return ResponseEntity.ok().body(data.toString());
     }
 
+    // Get all nodes in the network and their information
     @GetMapping("/info/all")
     public ResponseEntity<?> GetNodeInfoAll() {
         JSONArray dataList = new JSONArray();

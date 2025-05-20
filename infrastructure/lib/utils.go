@@ -215,7 +215,7 @@ func RunJarNS(hostInfo Node, sshClient *ssh.Client) {
 	RemoteExecuteCmd(cmd, sshClient)
 }
 
-func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string, isNode bool) {
+func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string, isNode bool, run bool) {
 	fullHost := hostInfo.Host + ":" + strconv.Itoa(hostInfo.Port)
 	if build {
 		// Create SCP client using SSH private key
@@ -237,11 +237,13 @@ func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string, is
 	} else {
 		log.Println("Skipping dependency installation.")
 	}
-	if isNode {
-		CreateDirectories(hostInfo, sshClient)
-		RunJarNode(hostInfo, sshClient)
-	} else {
-		RunJarNS(hostInfo, sshClient)
+	if run {
+		if isNode {
+			CreateDirectories(hostInfo, sshClient)
+			RunJarNode(hostInfo, sshClient)
+		} else {
+			RunJarNS(hostInfo, sshClient)
+		}
 	}
 }
 

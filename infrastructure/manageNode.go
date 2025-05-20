@@ -42,7 +42,7 @@ func main() {
 	if *kill {
 		L.KillRemoteJar(node)
 	} else {
-		L.SetupRemoteHost(node, false, false, jarFile, true)
+		L.SetupRemoteHost(node, false, false, jarFile, true, true)
 	}
 
 }

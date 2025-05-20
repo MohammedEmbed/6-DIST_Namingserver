@@ -75,7 +75,7 @@ func main() {
 		L.KillRemoteJar(NamingServer)
 	} else {
 		// Setup Naming server
-		L.SetupRemoteHost(NamingServer, *build, *installDeps, jarFileServer, false)
+		L.SetupRemoteHost(NamingServer, *build, *installDeps, jarFileServer, false, true)
 		StartLogging(NamingServer)
 
 	}
@@ -90,7 +90,7 @@ func main() {
 			if *killAll {
 				L.KillRemoteJar(n)
 			} else {
-				L.SetupRemoteHost(n, *build, *installDeps, jarFile, true)
+				L.SetupRemoteHost(n, *build, *installDeps, jarFile, true, true)
 				StartLogging(n)
 			}
 
