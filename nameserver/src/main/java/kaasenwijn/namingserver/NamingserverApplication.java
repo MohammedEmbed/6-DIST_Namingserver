@@ -25,7 +25,7 @@ public class NamingserverApplication {
         } else{
             System.out.println("not remote yess");
             port = 8090;
-            ip = "127.0.0.5";
+            ip = "127.0.0.1";
         }
         String hostName = "NamingServer";
         System.out.println("Node started with IP-address: "+ip+", Port: "+port+" and Name: "+hostName);

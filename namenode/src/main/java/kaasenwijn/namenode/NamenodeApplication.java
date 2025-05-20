@@ -10,7 +10,7 @@ import kaasenwijn.namenode.util.NodeMulticastReceiver;
 import kaasenwijn.namenode.util.NodeSender;
 import kaasenwijn.namenode.util.NodeUnicastReceiver;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+import org.springframework.boot.SpringApplication;
 import jade.core.*;
 import jade.core.Runtime;
 
@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class NamenodeApplication {
 
     public static void main(String[] args) throws InterruptedException, UnknownHostException {
+        SpringApplication.run(NamenodeApplication.class, args);
         boolean isRemote = Boolean.parseBoolean(System.getProperty("REMOTE"));
         String ip;
         int httpPort;

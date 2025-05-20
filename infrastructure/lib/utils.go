@@ -6,11 +6,15 @@ import (
 	scp "github.com/bramvdbogaerde/go-scp"
 	"github.com/bramvdbogaerde/go-scp/auth"
 	"golang.org/x/crypto/ssh"
+	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -185,13 +189,14 @@ func SendJAR(localJarPath string, scpClient scp.Client) {
 
 func RunJarNode(hostInfo Node, sshClient *ssh.Client) {
 	cmd := fmt.Sprintf(
-		"java -DREMOTE=true -DNS_PORT=%d -DNS_HTTP_PORT=%d -DSERVER_PORT=%d -DSERVER_NAME=%s -DNS_IP=%s -jar %s >> %slogs_%s.log 2>&1 &",
+		"java -DREMOTE=true -DNS_PORT=%d -DNS_HTTP_PORT=%d -DSERVER_PORT=%d -DSERVER_NAME=%s -DNS_IP=%s -jar %s --server.port=%d >> %slogs_%s.log 2>&1 &",
 		hostInfo.NSPort,
 		hostInfo.NSHTTPPort,
 		hostInfo.NPort,
 		hostInfo.Name,
 		hostInfo.NSIP,
 		remoteJarPath,
+		hostInfo.NPort+1,
 		logFilePath,
 		hostInfo.Name,
 	)
@@ -205,7 +210,7 @@ func RunJarNS(hostInfo Node, sshClient *ssh.Client) {
 		"-DNS_PORT=" + strconv.Itoa(hostInfo.NSPort) + " " +
 		"-Dserver.port=" + strconv.Itoa(hostInfo.NSHTTPPort) + " " +
 		"-Dname=" + hostInfo.Name + " " +
-		"-jar " + remoteJarPath + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
+		"-jar " + remoteJarPath + " --server.port=" + strconv.Itoa(hostInfo.NSHTTPPort) + " >> " + logFilePath + "logs_" + hostInfo.Name + ".log 2>&1 &"
 
 	RemoteExecuteCmd(cmd, sshClient)
 }
@@ -240,7 +245,7 @@ func SetupRemoteHost(hostInfo Node, build bool, install bool, jarFile string, is
 	}
 }
 
-func StreamRemoteLogs(hostInfo Node) error {
+func StreamRemoteLogs(hostInfo Node, static bool) error {
 	fullHost := hostInfo.Host + ":" + strconv.Itoa(hostInfo.Port)
 	sshClient := CreateSSHClient(fullHost)
 	defer sshClient.Close()
@@ -253,7 +258,9 @@ func StreamRemoteLogs(hostInfo Node) error {
 
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
-
+	if static {
+		return session.Run("cat " + logFilePath + "logs_" + hostInfo.Name + ".log")
+	}
 	return session.Run("tail -f " + logFilePath + "logs_" + hostInfo.Name + ".log")
 }
 
@@ -280,4 +287,50 @@ func CreateDirectories(hostInfo Node, sshClient *ssh.Client) {
 		mkdir -p "replicated_files_%[1]s"
 	`, hostInfo.Name)
 	RemoteExecuteCmd(cmd, sshClient)
+}
+
+func OpenSSHTunnel(sshClient *ssh.Client, port int) {
+
+	localListener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatalf("Failed to listen on local port: %s", err)
+	}
+	defer localListener.Close()
+
+	log.Println("Tunnel running: localhost → remote")
+
+	// Handle Ctrl+C
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-sigChan
+		log.Printf("Received signal: %s. Shutting down.", sig)
+		localListener.Close()
+		os.Exit(0)
+	}()
+
+	// Accept and proxy connections
+	for {
+		localConn, err := localListener.Accept()
+		if err != nil {
+			log.Println("Stopped accepting connections.")
+			break
+		}
+
+		remoteConn, err := sshClient.Dial("tcp", "localhost:"+strconv.Itoa(port))
+		if err != nil {
+			log.Printf("Remote dial error: %s", err)
+			localConn.Close()
+			continue
+		}
+
+		go proxy(localConn, remoteConn)
+		go proxy(remoteConn, localConn)
+	}
+}
+
+func proxy(src, dst net.Conn) {
+	defer src.Close()
+	defer dst.Close()
+	io.Copy(src, dst)
 }

@@ -25,6 +25,9 @@ public class NodeRepository {
         return instance;
     }
 
+    public NodeStructure getNodeStructure(){
+        return nodeStructure;
+    }
     public int getCurrentId() {
         return nodeStructure.currentId;
     }

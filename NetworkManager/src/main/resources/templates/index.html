@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Command Output</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>Shell Command Output</h1>
+<button onclick="loadOutput()">Run Command</button>
+<pre id="output">Click the button to fetch command output...</pre>
+
+<script>
+    function loadOutput() {
+        fetch('/api/logs')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('output').textContent = data;
+            });
+    }
+    // setInterval(()=>{
+    //     loadOutput()
+    // },5000)
+</script>
+</body>
+</html>

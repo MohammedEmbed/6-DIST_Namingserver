@@ -1,6 +1,7 @@
 package kaasenwijn.namenode.service;
 
 import kaasenwijn.namenode.model.Neighbor;
+import kaasenwijn.namenode.model.NodeStructure;
 import kaasenwijn.namenode.repository.NodeRepository;
 import kaasenwijn.namenode.util.CommunicationException;
 import kaasenwijn.namenode.util.NodeSender;
@@ -11,6 +12,8 @@ import org.json.JSONTokener;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static kaasenwijn.namenode.util.Failure.handleFailure;
@@ -240,6 +243,38 @@ public class NodeService {
             e.printStackTrace();
             }
         return null;
+    }
+
+
+    public  static JSONObject getNodeInfo(){
+        // Local files
+        List<String> localFiles = FileMonitor.getKnownFiles().values().stream().toList();
+        // Replicated files
+        // TODO: maybe add more info, from the logs?
+        List<String> replicatedFiles = new ArrayList<>();
+        File folder = new File("replicated_files_"+NodeRepository.getInstance().getName());
+        if (folder.exists() && folder.isDirectory()) { // Does the folder exist?
+            File[] files = folder.listFiles(); // List all files
+            if (files != null) { // Are there any files?
+                for (File file : files) { // Loop through all files
+                    replicatedFiles.add(file.getName());
+                }
+            }
+        }
+        // Node info
+
+        JSONObject nodeInfo = new JSONObject();
+        nodeInfo.put("currentId",nodeRepository.getCurrentId());
+        nodeInfo.put("previousId",nodeRepository.getPreviousId());
+        nodeInfo.put("nextId",nodeRepository.getNextId());
+        nodeInfo.put("name",nodeRepository.getName());
+
+        JSONObject data = new JSONObject();
+        data.put("local_files",localFiles);
+        data.put("replicated_files",replicatedFiles);
+        data.put("info",nodeInfo);
+
+        return data;
     }
 
 }

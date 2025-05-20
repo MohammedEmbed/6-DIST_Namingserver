@@ -8,20 +8,20 @@ import (
 func main() {
 
 	// Define command-line flags
-	host := flag.String("host", "127.0.0.1", "Host IP of the node")
 	port := flag.Int("port", 1099, "Port of the node")
 	name := flag.String("name", "default-node", "Name of the node")
+	static := flag.Bool("static", false, "Static")
 
 	flag.Parse() // Parse command-line flags
 
 	// Create a Node object using parsed flags
 	node := L.Node{
-		Host: *host,
+		Host: "6dist.idlab.uantwerpen.be",
 		Port: *port,
 		Name: *name,
 	}
 
-	err := L.StreamRemoteLogs(node)
+	err := L.StreamRemoteLogs(node, *static)
 	if err != nil {
 		return
 	}

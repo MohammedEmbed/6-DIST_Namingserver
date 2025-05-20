@@ -16,6 +16,7 @@ var NamingServer = L.Node{
 	Name:       "NamingServer",
 	NSPort:     8090,
 	NSHTTPPort: 8091,
+	NSIP:       "172.18.0.5",
 }
 var nodes = []L.Node{
 	{
@@ -23,19 +24,19 @@ var nodes = []L.Node{
 		Port:       2011,
 		Name:       "Warre",
 		NPort:      8010,
-		NSIP:       "172.18.0.5",
-		NSPort:     8090,
-		NSHTTPPort: 8091,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
 	},
-	{
-		Host:       "6dist.idlab.uantwerpen.be",
-		Port:       2012,
-		Name:       "Arvo",
-		NPort:      8011,
-		NSIP:       "172.18.0.5",
-		NSPort:     8090,
-		NSHTTPPort: 8091,
-	},
+	//{
+	//	Host:       "6dist.idlab.uantwerpen.be",
+	//	Port:       2012,
+	//	Name:       "Arvo",
+	//	NPort:      8011,
+	//	NSIP:       NamingServer.NSIP,
+	//	NSPort:     NamingServer.NSPort,
+	//	NSHTTPPort: NamingServer.NSHTTPPort,
+	//},
 	//{
 	//    Host:   "6dist.idlab.uantwerpen.be",
 	//    Port:   2011,
@@ -76,6 +77,7 @@ func main() {
 		// Setup Naming server
 		L.SetupRemoteHost(NamingServer, *build, *installDeps, jarFileServer, false)
 		StartLogging(NamingServer)
+
 	}
 
 	// Configure all nodes
@@ -96,12 +98,18 @@ func main() {
 	}
 	wg.Wait()
 
+	if !*killAll {
+		// Finally, setup tunnel to Naming server
+		sshClient := L.CreateSSHClient(NamingServer.Host + ":" + strconv.Itoa(NamingServer.Port))
+		defer sshClient.Close()
+		L.OpenSSHTunnel(sshClient, NamingServer.NSHTTPPort)
+	}
+
 }
 
 func StartLogging(hostInfo L.Node) {
 	cmd := exec.Command("cmd", "/C", "start", hostInfo.Name+" - Logs", "cmd", "/K",
 		"go", "run", "logviewer.go",
-		"--host="+hostInfo.Host,
 		"--port="+strconv.Itoa(hostInfo.Port),
 		"--name="+hostInfo.Name,
 	)
