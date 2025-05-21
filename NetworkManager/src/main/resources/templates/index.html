@@ -15,12 +15,12 @@ Show table of nodes: Name, IP, Port, details -->
 
 <h2 class="text-big">Name Server</h2>
 <p>Status: </p>
-<button class="button button--green button--mobileFull" onclick="startNS()">Start NS</button>
-<button class="button button--red button--mobileFull" onclick="stopNS()">Stop NS</button>
+<button th:if="${!NSStatus}" class="button button--green button--mobileFull" onclick="startNS()">Start NS</button>
+<button th:if="${NSStatus}" class="button button--red button--mobileFull" onclick="stopNS()">Stop NS</button>
 
 <h2 class="text-big">Nodes</h2>
 
-<form>
+<form onsubmit="addNode(event)">
     <div class="formCollapsed">
         <div class="input formCollapsed-item formCollapsed-itemPrimary">
             <input id="nodeName" placeholder="Node name" type="text">
@@ -37,18 +37,18 @@ Show table of nodes: Name, IP, Port, details -->
     <tr class="text-small text-left">
         <th>Name</th>
         <th>Hash</th>
-        <th>IP address</th>
+        <th>Location</th>
         <th>Port</th>
         <th>Details</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="node : ${nodes}">
+        <tr th:each="node : ${nodes}">
         <td th:text="${node.info.name}"></td>
         <td th:text="${node.info.currentId}"></td>
-        <td th:text="${node.port != null} ? ${node.port.hostPort} : 'N/A'}"></td>
-        <td th:text="${node.port != null} ? ${node.port.port} : 'N/A'}"></td>
-        <td><a class="button button--small button--outlined" th:href="./detail/${node.info.name}">outlined</a></td>
+        <td th:text="${node.port != null ? '6dist.idlab.uantwerpen.be'+node.port.hostPort : 'N/A' }"></td>
+        <td th:text="${node.port != null ? node.port.port : 'N/A' }"></td>
+        <td><a class="button button--small button--outlined" th:href="${'./detail/'+node.info.name}">Details</a></td>
     </tr>
 
     </tbody>
@@ -69,12 +69,31 @@ Show table of nodes: Name, IP, Port, details -->
             });
     }
 
-    function addNode() {
-        fetch('api/node/add/')
+    function addNode(event) {
+        event.preventDefault(); // prevent form from reloading the page
+        const input = document.getElementById("nodeName");
+        const nodeName = input.value.trim();
+
+        if (!nodeName) {
+            alert("Please enter a node name.");
+            return;
+        }
+        fetch('/api/node/add/'+name).then(()=>{
+            window.location.reload();
+        });
     }
-    // setInterval(()=>{
-    //     loadOutput()
-    // },5000)
+    function startNS(){
+        fetch('/api/ns/start'+name).then(()=>{
+            window.location.reload();
+        });
+    }
+
+    function stopNS(){
+        fetch('/api/ns/stop'+name).then(()=>{
+            window.location.reload();
+        });
+    }
+
 </script>
 </body>
 </html>

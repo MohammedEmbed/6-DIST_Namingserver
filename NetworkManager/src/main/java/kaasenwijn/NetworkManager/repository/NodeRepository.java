@@ -11,12 +11,20 @@ public class NodeRepository {
     private final HashMap<Integer, List<Node>> nodeMap = new HashMap<>(); //[Integer, Ip Address] => node
     private final HashMap<String, Node> nameNodeMap = new HashMap<>(); //[Integer, Ip Address] => node
     private final HashMap<String, Boolean> statusNodeMap = new HashMap<>(); //[Integer, Ip Address] => node
-
+    private Boolean NSStatus = false;
     private static NodeRepository single_instance = null;
 
     private final int portRangeMin = 8000;
     private final int portRangeMax = 8079;
     private final int minPortDistance = 4;
+
+    public Boolean getNSStatus() {
+        return NSStatus;
+    }
+
+    public void setNSStatus(Boolean NSStatus) {
+        this.NSStatus = NSStatus;
+    }
 
     private NodeRepository() {
         nodeMap.put(2011,new ArrayList<>());

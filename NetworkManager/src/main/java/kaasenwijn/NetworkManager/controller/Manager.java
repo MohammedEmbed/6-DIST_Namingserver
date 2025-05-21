@@ -35,6 +35,9 @@ public class Manager {
             }
         }
         model.addAttribute("nodes", nodeInfoList);
+        model.addAttribute("NSStatus", nodeRepository.getNSStatus());
+        System.out.println(nodeRepository.getNSStatus());
+
         return "index";
     }
 
@@ -72,6 +75,7 @@ public class Manager {
     @ResponseBody
     public void startNS() {
         //TODO: make dynamic
+        nodeRepository.setNSStatus(true);
         nodeManager.startStopNS(false);
     }
 
@@ -80,6 +84,7 @@ public class Manager {
     @ResponseBody
     public void stopNS() {
         //TODO: make dynamic
+        nodeRepository.setNSStatus(false);
         nodeManager.startStopNS(true);
     }
 
