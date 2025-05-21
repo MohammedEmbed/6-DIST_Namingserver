@@ -19,24 +19,24 @@ var NamingServer = L.Node{
 	NSIP:       "172.18.0.5",
 }
 var nodes = []L.Node{
-	//{
-	//	Host:       "6dist.idlab.uantwerpen.be",
-	//	Port:       2011,
-	//	Name:       "Warre",
-	//	NPort:      8010,
-	//	NSIP:       NamingServer.NSIP,
-	//	NSPort:     NamingServer.NSPort,
-	//	NSHTTPPort: NamingServer.NSHTTPPort,
-	//},
-	//{
-	//	Host:       "6dist.idlab.uantwerpen.be",
-	//	Port:       2012,
-	//	Name:       "Arvo",
-	//	NPort:      8011,
-	//	NSIP:       NamingServer.NSIP,
-	//	NSPort:     NamingServer.NSPort,
-	//	NSHTTPPort: NamingServer.NSHTTPPort,
-	//},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2011,
+		Name:       "Warre",
+		NPort:      8010,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2012,
+		Name:       "Arvo",
+		NPort:      8011,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
 	//{
 	//    Host:   "6dist.idlab.uantwerpen.be",
 	//    Port:   2011,

@@ -34,7 +34,6 @@ public class Manager {
         List<NodeInfo> nodeInfoList;
         if(nodeRepository.getNSStatus()){
             JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
-            System.out.println(nodesJson.toString());
              nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
             for(NodeInfo node: nodeInfoList){
                 nameLookUp.put(node.getInfo().getName(),true);
