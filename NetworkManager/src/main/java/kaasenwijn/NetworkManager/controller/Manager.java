@@ -92,9 +92,11 @@ public class Manager {
 
         List<NodeInfo> nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
         for(NodeInfo node: nodeInfoList){
-            Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
+            String name = node.getInfo().getName();
+            Node portInfo = nodeRepository.getNodeByName(name);
             if(portInfo != null){
                 node.addPortInfo(portInfo);
+                node.getInfo().setStatus(nodeRepository.getStatusByName(name));
             }
         }
          return nodeInfoList;
@@ -107,9 +109,10 @@ public class Manager {
         JSONObject nodesJson = nodeManager.sendServerGetRequestObject("localhost:8091","/api/node/info/all");
 
         NodeInfo nodeInfo = NodeInfo.fromJSONObject(nodesJson);
-        Node portInfo = nodeRepository.getNodeByName(nodeInfo.getInfo().getName());
+        Node portInfo = nodeRepository.getNodeByName(name);
         if(portInfo != null){
             nodeInfo.addPortInfo(portInfo);
+            nodeInfo.getInfo().setStatus(nodeRepository.getStatusByName(name));
         }
         return nodeInfo;
     }

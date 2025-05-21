@@ -38,8 +38,17 @@ public class NodeInfo {
         private int nextId;
         private String name;
 
+        private Boolean status;
 
-        public Info(int currentId, int previousId, int nextId, String name) {
+       public Boolean getStatus() {
+           return status;
+       }
+
+       public void setStatus(Boolean status) {
+           this.status = status;
+       }
+
+       public Info(int currentId, int previousId, int nextId, String name) {
             this.currentId = currentId;
             this.previousId = previousId;
             this.nextId = nextId;
