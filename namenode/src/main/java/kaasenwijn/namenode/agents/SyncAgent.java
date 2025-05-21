@@ -33,7 +33,7 @@ public class SyncAgent extends Agent implements Runnable, Serializable {
             dfd.setName(getAID());
             ServiceDescription sd = new ServiceDescription();
             sd.setType("sync-agent");
-            sd.setName("file-sync");
+            sd.setName("file-sync"); //Todo: Elke node moet een unieke naam hebben
             dfd.addServices(sd);
             DFService.register(this, dfd);
         } catch (Exception e) {
