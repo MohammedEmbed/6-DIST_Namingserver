@@ -9,6 +9,9 @@ public class NodeRepository {
     // Maps which nodes are deployed on which container
     // Containers are identified by its port number
     private final HashMap<Integer, List<Node>> nodeMap = new HashMap<>(); //[Integer, Ip Address] => node
+    private final HashMap<String, Node> nameNodeMap = new HashMap<>(); //[Integer, Ip Address] => node
+    private final HashMap<String, Boolean> statusNodeMap = new HashMap<>(); //[Integer, Ip Address] => node
+
     private static NodeRepository single_instance = null;
 
     private final int portRangeMin = 8000;
@@ -31,15 +34,27 @@ public class NodeRepository {
         return this.nodeMap.getOrDefault(port,new ArrayList<>());
     }
 
+    public void startNode(Node node){
+        this.statusNodeMap.put(node.getName(),true);
+    }
+
+    public void stopNode(Node node){
+        this.statusNodeMap.put(node.getName(),false);
+    }
     public void addNode(Node node){
         List<Node> nodes = getNodes(node.getHostPort());
         nodes.add(node);
         this.nodeMap.put(node.getHostPort(),nodes);
+        this.nameNodeMap.put(node.getName(),node);
     }
+
+
     public void removeNode(Node node){
         List<Node> nodes = getNodes(node.getHostPort());
         nodes.removeIf(_node -> node.getName().equals(_node.getName()));
         this.nodeMap.put(node.getHostPort(),nodes);
+        this.nameNodeMap.remove(node.getName());
+        this.statusNodeMap.remove(node.getName());
     }
 
     public int findLeastLoadedServer(){
@@ -83,6 +98,13 @@ public class NodeRepository {
         return nodeMap.values().stream()
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
+    }
+
+    public  Node getNodeByName(String name){
+        return this.nameNodeMap.get(name);
+    }
+    public  Boolean getStatusByName(String name){
+        return this.statusNodeMap.get(name);
     }
 
 }

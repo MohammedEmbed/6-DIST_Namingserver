@@ -270,8 +270,8 @@ public class NodeService {
         nodeInfo.put("name",nodeRepository.getName());
 
         JSONObject data = new JSONObject();
-        data.put("local_files",localFiles);
-        data.put("replicated_files",replicatedFiles);
+        data.put("localFiles",localFiles);
+        data.put("replicatedFiles",replicatedFiles);
         data.put("info",nodeInfo);
 
         return data;

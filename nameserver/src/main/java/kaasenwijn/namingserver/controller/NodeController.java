@@ -86,8 +86,9 @@ public class NodeController {
     }
 
     // Get the information of a specific node
-    @GetMapping("/info/{id}")
-    public ResponseEntity<?> GetNodeInfo(@PathVariable int id) {
+    @GetMapping("/info/{name}")
+    public ResponseEntity<?> GetNodeInfo(@PathVariable String name) {
+        int id = NameService.getHash(name);
         if (!ipRepo.ipExists(id)) {
             System.out.println("Node " + id + " not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));

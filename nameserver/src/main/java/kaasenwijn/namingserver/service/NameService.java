@@ -54,15 +54,12 @@ public class NameService {
         repo.setName(name);
     }
 
-
     public static Neighbours getNeighbours(int id){
         int nextId = ipRepo.getNextId(id);
         int prevId = ipRepo.getPreviousId(id);
         String nextIp = ipRepo.getIp(nextId);
         String prevIp = ipRepo.getIp(prevId);
         return new Neighbours(new NodeIp(nextId,nextIp), new NodeIp(prevId,prevIp));
-
-
     }
 
 
