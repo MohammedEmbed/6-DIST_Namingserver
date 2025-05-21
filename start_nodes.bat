@@ -57,7 +57,7 @@ for %%A in (%IP_PORT_LIST%) do (
 
                 start "%%D - %%B:%%C" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false -jar %JAR_FILE%"
         echo agent port: !AGENT_PORT!
-        start "%%D - Sync agent" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false  -cp target/classes;jade/lib/jade.jar jade.Boot -gui -agents %%D:kaasenwijn.namenode.agents.SyncAgent  -host localhost -port !AGENT_PORT! "
+        start "%%D - JADE" cmd /k "java -DSERVER_PORT=%%C -DSERVER_IP=%%B -DSERVER_NAME=%%D -DNS_IP=%NS_IP% -DNS_PORT=%NS_PORT% -DAGENT_PORT=!AGENT_PORT! -DREMOTE=false  -cp target/classes;jade/lib/jade.jar jade.Boot -gui -host localhost -port !AGENT_PORT! "
 
     )
 )

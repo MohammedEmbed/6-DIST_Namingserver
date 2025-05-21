@@ -85,11 +85,13 @@ public class Failure {
     }
 
     public static void initiateFailureAgent(int hash) {
+        System.out.println("[Failure] Initiating FailureAgent!");
+
         int newOwnerId = nodeRepository.getCurrentId();
 
         try {
             AgentController ac = nodeRepository.getAgentContainer().createNewAgent(
-                    "FailureAgent",
+                    "FailureAgent"+nodeRepository.getName(),
                     FailureAgent.class.getName(),
                     new Object[]{hash, newOwnerId}
             );
