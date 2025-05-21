@@ -3,10 +3,59 @@
 <head>
     <title>Command Output</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" media="all" href="https://sierra-library.github.io/css/styles.min.css">
 </head>
-<body>
-<h1>Shell Command Output</h1>
-<button onclick="loadOutput()">Run Command</button>
+<body class="container">
+<!--
+Start stop NS
+
+Add Node
+
+Show table of nodes: Name, IP, Port, details -->
+
+<h2 class="text-big">Name Server</h2>
+<p>Status: </p>
+<button class="button button--green button--mobileFull" onclick="startNS()">Start NS</button>
+<button class="button button--red button--mobileFull" onclick="stopNS()">Stop NS</button>
+
+<h2 class="text-big">Nodes</h2>
+
+<form>
+    <div class="formCollapsed">
+        <div class="input formCollapsed-item formCollapsed-itemPrimary">
+            <input id="nodeName" placeholder="Node name" type="text">
+        </div>
+        <button class="formCollapsed-item button button-primary">
+            Add node
+        </button>
+    </div>
+</form>
+
+
+<table class="table table--responsive">
+    <thead>
+    <tr class="text-small text-left">
+        <th>Name</th>
+        <th>IP address</th>
+        <th>Port</th>
+        <th>Details</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Lemon</td>
+        <td>Orange</td>
+        <td>Kiwi</td>
+        <td><button class="button button--small button--outlined">outlined</button></td>
+    </tr>
+
+    </tbody>
+</table>
+
+
+
+<h1 class="text-big">Shell Command Output</h1>
+<button class="button button--primary button--mobileFull" onclick="loadOutput()">Run Command</button>
 <pre id="output">Click the button to fetch command output...</pre>
 
 <script>
