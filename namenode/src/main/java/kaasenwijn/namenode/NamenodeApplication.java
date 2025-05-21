@@ -34,7 +34,7 @@ public class NamenodeApplication {
              httpPort = Integer.parseInt(System.getProperty("NS_HTTP_PORT"));
         } else{
             ip = System.getProperty("SERVER_IP");
-            httpPort = 8080;
+            httpPort = 8091;
         }
         int port = Integer.parseInt(System.getProperty("SERVER_PORT"));
 

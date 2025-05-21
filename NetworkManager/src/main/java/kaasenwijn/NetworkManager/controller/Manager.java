@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,7 +24,17 @@ public class Manager {
 
     // Returns html index page
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
+        JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
+
+        List<NodeInfo> nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
+        for(NodeInfo node: nodeInfoList){
+            Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
+            if(portInfo != null){
+                node.addPortInfo(portInfo);
+            }
+        }
+        model.addAttribute("nodes", nodeInfoList);
         return "index";
     }
 
