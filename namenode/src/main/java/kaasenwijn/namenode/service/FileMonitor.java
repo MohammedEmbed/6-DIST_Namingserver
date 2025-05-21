@@ -35,10 +35,15 @@ public class FileMonitor extends Thread {
                             paintMap.put(fileHash, true);
                             if (file.isFile() && !knownFiles.containsKey(fileHash)) { // Is this a new file?
                                 String filename = file.getName();
-                                knownFiles.put(fileHash,filename);
-
                                 System.out.println("Detected new file: " + filename);
-
+                                //Acquire a lock
+                                boolean locked = ApiService.acquireFileLock(filename, NodeRepository.getInstance().getCurrentId());
+                                if (!locked) {
+                                    System.out.printf("Could not acquire lock for file %s. Skipping this round.%n", filename);
+                                    continue;
+                                }
+                                //If we reach here a lock was acquired
+                                knownFiles.put(fileHash,filename);
                                 // Prepare data to send
                                 JSONObject data = new JSONObject();
                                 data.put("filename", filename);
@@ -54,6 +59,8 @@ public class FileMonitor extends Thread {
                                             data
                                     );
                                     System.out.printf("[File monitor] send replication request by node for file %s \n", filename);
+                                    ApiService.releaseFileLock(filename, NodeRepository.getInstance().getCurrentId());
+                                    System.out.printf("[File monitor] Released lock for file %s.%n", filename);
                                 } catch (CommunicationException e) {
                                     System.err.println("Failed to send replication request for file: " + filename);
                                     e.printStackTrace();
