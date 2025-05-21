@@ -26,7 +26,7 @@ public class NodeManager {
                 "--name", node.getName(),
                 "--static"
         );
-        String output = runGoScript(pb);
+        String output = runGoScript(pb,false);
 
         return output.toString();
     }
@@ -42,12 +42,12 @@ public class NodeManager {
                 "--name", node.getName(),
                kill ? "--kill" :""
         );
-       String output = runGoScript(pb);
+       String output = runGoScript(pb,false);
 
         return output.toString();
     }
 
-    public String runGoScript(ProcessBuilder pb) {
+    public String runGoScript(ProcessBuilder pb, Boolean background) {
         StringBuilder output = new StringBuilder();
         try {
             // Assume goscript binary is in the project root
@@ -60,38 +60,49 @@ public class NodeManager {
             pb.directory(infraDir);
 
             Process process = pb.start();
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
+            if(!background){
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+                process.waitFor();
+                return output.toString();
             }
 
-            process.waitFor();
         } catch (Exception e) {
             output.append("Error running Go script: ").append(e.getMessage());
         }
+        return "";
 
-        return output.toString();
     }
 
-    public void startStopNS(boolean kill){
+    public String startStopNS(boolean kill){
         ProcessBuilder pb = new ProcessBuilder(
                 "go", "run", "./manageNS.go",
                 kill ? "--kill" :""
         );
-        runGoScript(pb);
+        return runGoScript(pb,false);
     }
+
+    public void startTunnelNS(){
+        ProcessBuilder pb = new ProcessBuilder(
+                "go", "run", "./tunnel.go"
+        );
+        runGoScript(pb,true);
+    }
+
 
     public void addNode(String name){
         // TO DO: handle case if no nodes are free
         int targetPort = nodeRepository.findLeastLoadedServer();
         int freePort = nodeRepository.findFreePort(targetPort);
         Node node=new Node(targetPort,freePort,name);
-        startStopNode(node,false);
         nodeRepository.addNode(node);
-        nodeRepository.startNode(node);
+        //        startStopNode(node,false);
+//        nodeRepository.startNode(node);
 
         System.out.println("Added "+node);
 

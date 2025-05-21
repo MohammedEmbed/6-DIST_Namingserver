@@ -14,7 +14,8 @@ Add Node
 Show table of nodes: Name, IP, Port, details -->
 
 <h2 class="text-big">Name Server</h2>
-<p>Status: </p>
+<p>Status: <span th:text="${NSStatus ? 'Running' : 'Stopped'}"></span></p>
+<p id="start-text"></p>
 <button th:if="${!NSStatus}" class="button button--green button--mobileFull" onclick="startNS()">Start NS</button>
 <button th:if="${NSStatus}" class="button button--red button--mobileFull" onclick="stopNS()">Stop NS</button>
 
@@ -25,7 +26,7 @@ Show table of nodes: Name, IP, Port, details -->
         <div class="input formCollapsed-item formCollapsed-itemPrimary">
             <input id="nodeName" placeholder="Node name" type="text">
         </div>
-        <button class="formCollapsed-item button button-primary" onsubmit="addNode()">
+        <button class="formCollapsed-item button button-primary" type="submit">
             Add node
         </button>
     </div>
@@ -35,6 +36,7 @@ Show table of nodes: Name, IP, Port, details -->
 <table class="table table--responsive">
     <thead>
     <tr class="text-small text-left">
+        <th>Status</th>
         <th>Name</th>
         <th>Hash</th>
         <th>Location</th>
@@ -44,30 +46,18 @@ Show table of nodes: Name, IP, Port, details -->
     </thead>
     <tbody>
         <tr th:each="node : ${nodes}">
+        <td th:text="${node.info.status ? 'Running' : 'Stopped'}"></td>
         <td th:text="${node.info.name}"></td>
-        <td th:text="${node.info.currentId}"></td>
-        <td th:text="${node.port != null ? '6dist.idlab.uantwerpen.be'+node.port.hostPort : 'N/A' }"></td>
-        <td th:text="${node.port != null ? node.port.port : 'N/A' }"></td>
+        <td th:text="${node.info.currentId != -1 ? node.info.currentId : 'N/A'}"></td>
+        <td th:text="${node.port != null ? '6dist.idlab.uantwerpen.be:'+node.port.hostPort : 'N/A' }"></td>
+        <td th:text="${node.port != null  ? node.port.port : 'N/A' }"></td>
         <td><a class="button button--small button--outlined" th:href="${'./detail/'+node.info.name}">Details</a></td>
     </tr>
 
     </tbody>
 </table>
 
-
-
-<h1 class="text-big">Shell Command Output</h1>
-<button class="button button--primary button--mobileFull" onclick="loadOutput()">Run Command</button>
-<pre id="output border">Click the button to fetch command output...</pre>
-
 <script>
-    function loadOutput() {
-        fetch('/api/logs')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('output').textContent = data;
-            });
-    }
 
     function addNode(event) {
         event.preventDefault(); // prevent form from reloading the page
@@ -78,19 +68,22 @@ Show table of nodes: Name, IP, Port, details -->
             alert("Please enter a node name.");
             return;
         }
-        fetch('/api/node/add/'+name).then(()=>{
-            window.location.reload();
+        fetch('/api/node/add/'+nodeName).then(()=>{
+            setTimeout(()=>{           window.location.reload();},1000)
         });
     }
     function startNS(){
+        const startText = document.getElementById("start-text");
+        startText.textContent = "Starting...";
         fetch('/api/ns/start'+name).then(()=>{
-            window.location.reload();
+            setTimeout(()=>{           window.location.reload();},7000)
         });
     }
 
     function stopNS(){
         fetch('/api/ns/stop'+name).then(()=>{
-            window.location.reload();
+            setTimeout(()=>{           window.location.reload();},500)
+
         });
     }
 

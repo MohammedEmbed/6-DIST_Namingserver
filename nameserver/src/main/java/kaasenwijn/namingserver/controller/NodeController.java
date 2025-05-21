@@ -110,7 +110,9 @@ public class NodeController {
             int port = node.port+1;
             String dest = node.ip+":"+port;
             JSONObject data = NameService.sendServerGetRequest(dest,"/api/node/info");
-            dataList.put(data);
+            if(data != null){
+                dataList.put(data);
+            }
         }
         return ResponseEntity.ok().body(dataList.toString());
     }

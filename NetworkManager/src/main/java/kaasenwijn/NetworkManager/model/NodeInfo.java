@@ -55,7 +55,15 @@ public class NodeInfo {
             this.name = name;
         }
 
-        public int getCurrentId() {
+       public Info(int currentId, int previousId, int nextId, String name, Boolean status) {
+           this.currentId = currentId;
+           this.previousId = previousId;
+           this.nextId = nextId;
+           this.name = name;
+           this.status = status;
+       }
+
+       public int getCurrentId() {
             return currentId;
         }
 

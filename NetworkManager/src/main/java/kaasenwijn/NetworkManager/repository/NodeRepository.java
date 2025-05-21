@@ -112,7 +112,7 @@ public class NodeRepository {
         return this.nameNodeMap.get(name);
     }
     public  Boolean getStatusByName(String name){
-        return this.statusNodeMap.get(name);
+        return this.statusNodeMap.getOrDefault(name,false);
     }
 
 }

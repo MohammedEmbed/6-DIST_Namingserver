@@ -7,11 +7,16 @@ import kaasenwijn.NetworkManager.service.NodeManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Controller
@@ -25,15 +30,32 @@ public class Manager {
     // Returns html index page
     @GetMapping("/")
     public String index(Model model) {
-        JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
+        HashMap<String,Boolean> nameLookUp = new HashMap<>();
+        List<NodeInfo> nodeInfoList;
+        if(nodeRepository.getNSStatus()){
+            JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
+            System.out.println(nodesJson.toString());
+             nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
+            for(NodeInfo node: nodeInfoList){
+                nameLookUp.put(node.getInfo().getName(),true);
+                Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
+                if(portInfo != null){
+                    node.addPortInfo(portInfo);
+                    node.getInfo().setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                }
+            }
+        }else{
+            nodeInfoList = new ArrayList<>();
+        }
 
-        List<NodeInfo> nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
-        for(NodeInfo node: nodeInfoList){
-            Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
-            if(portInfo != null){
-                node.addPortInfo(portInfo);
+        for(Node node: nodeRepository.getAll()){
+            if(!nameLookUp.getOrDefault(node.getName(),false)){
+                NodeInfo nodeInfo = new NodeInfo(new NodeInfo.Info(-1,-1,-1,node.getName(),nodeRepository.getStatusByName(node.getName())),new ArrayList<>(),new ArrayList<>());
+                nodeInfo.addPortInfo(node);
+                nodeInfoList.add(nodeInfo);
             }
         }
+
         model.addAttribute("nodes", nodeInfoList);
         model.addAttribute("NSStatus", nodeRepository.getNSStatus());
         System.out.println(nodeRepository.getNSStatus());
@@ -54,38 +76,43 @@ public class Manager {
     // Start a node
     @GetMapping("/api/node/start/{name}")
     @ResponseBody
-    public String startNode(@PathVariable String name) {
+    public ResponseEntity<Void> startNode(@PathVariable String name) {
         Node node = nodeRepository.getNodeByName(name);
         nodeRepository.startNode(node);
-        return nodeManager.startStopNode(node,false);
+        nodeManager.startStopNode(node,false);
+        return ResponseEntity.ok().build();
     }
 
     // Stop a node
     @GetMapping("/api/node/stop/{name}")
     @ResponseBody
-    public String stopNode(@PathVariable String name) {
+    public ResponseEntity<Void> stopNode(@PathVariable String name) {
         Node node = nodeRepository.getNodeByName(name);
         nodeRepository.stopNode(node);
-        return nodeManager.startStopNode(node,true);
+        nodeManager.startStopNode(node,true);
+        return ResponseEntity.ok().build();
     }
 
 
     // Start a the name server
     @GetMapping("/api/ns/start")
     @ResponseBody
-    public void startNS() {
+    public ResponseEntity<Void> startNS() {
         //TODO: make dynamic
         nodeRepository.setNSStatus(true);
-        nodeManager.startStopNS(false);
+        String output = nodeManager.startStopNS(false);
+        return ResponseEntity.ok().build();
     }
 
     // Stop the name server
     @GetMapping("/api/ns/stop")
     @ResponseBody
-    public void stopNS() {
+    public ResponseEntity<Void> stopNS() {
         //TODO: make dynamic
         nodeRepository.setNSStatus(false);
         nodeManager.startStopNS(true);
+        return ResponseEntity.ok().build();
+
     }
 
     // Get all deployed nodes
@@ -127,15 +154,17 @@ public class Manager {
     // of nodes already
     @GetMapping("/api/node/add/{name}")
     @ResponseBody
-    public void addNode(@PathVariable String name) {
+    public ResponseEntity<Void> addNode(@PathVariable String name) {
         nodeManager.addNode(name);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/api/node/remove/{name}")
     @ResponseBody
-    public void removeNode(@PathVariable String name) {
+    public ResponseEntity<Void> removeNode(@PathVariable String name) {
         Node node = nodeRepository.getNodeByName(name);
         nodeRepository.removeNode(node);
+        return ResponseEntity.ok().build();
     }
 
 }
