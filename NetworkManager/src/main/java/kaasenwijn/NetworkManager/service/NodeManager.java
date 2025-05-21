@@ -1,6 +1,7 @@
 package kaasenwijn.NetworkManager.service;
 
 import kaasenwijn.NetworkManager.model.Node;
+import kaasenwijn.NetworkManager.model.NodeInfo;
 import kaasenwijn.NetworkManager.repository.NodeRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,6 +12,9 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class NodeManager {
@@ -159,6 +163,34 @@ public class NodeManager {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<NodeInfo> getNodes(){
+        HashMap<String,Boolean> nameLookUp = new HashMap<>();
+        List<NodeInfo> nodeInfoList;
+        if(nodeRepository.getNSStatus()){
+            JSONArray nodesJson = sendServerGetRequestArray("localhost:8091","/api/node/info/all");
+            nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
+            for(NodeInfo node: nodeInfoList){
+                nameLookUp.put(node.getInfo().getName(),true);
+                Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
+                if(portInfo != null){
+                    node.addPortInfo(portInfo);
+                    node.getInfo().setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                }
+            }
+        }else{
+            nodeInfoList = new ArrayList<>();
+        }
+
+        for(Node node: nodeRepository.getAll()){
+            if(!nameLookUp.getOrDefault(node.getName(),false)){
+                NodeInfo nodeInfo = new NodeInfo(new NodeInfo.Info(-1,-1,-1,node.getName(),nodeRepository.getStatusByName(node.getName())),new ArrayList<>(),new ArrayList<>());
+                nodeInfo.addPortInfo(node);
+                nodeInfoList.add(nodeInfo);
+            }
+        }
+        return nodeInfoList;
     }
 
 

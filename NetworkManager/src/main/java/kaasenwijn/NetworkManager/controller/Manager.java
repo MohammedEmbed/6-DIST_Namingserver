@@ -30,31 +30,7 @@ public class Manager {
     // Returns html index page
     @GetMapping("/")
     public String index(Model model) {
-        HashMap<String,Boolean> nameLookUp = new HashMap<>();
-        List<NodeInfo> nodeInfoList;
-        if(nodeRepository.getNSStatus()){
-            JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
-             nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
-            for(NodeInfo node: nodeInfoList){
-                nameLookUp.put(node.getInfo().getName(),true);
-                Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
-                if(portInfo != null){
-                    node.addPortInfo(portInfo);
-                    node.getInfo().setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
-                }
-            }
-        }else{
-            nodeInfoList = new ArrayList<>();
-        }
-
-        for(Node node: nodeRepository.getAll()){
-            if(!nameLookUp.getOrDefault(node.getName(),false)){
-                NodeInfo nodeInfo = new NodeInfo(new NodeInfo.Info(-1,-1,-1,node.getName(),nodeRepository.getStatusByName(node.getName())),new ArrayList<>(),new ArrayList<>());
-                nodeInfo.addPortInfo(node);
-                nodeInfoList.add(nodeInfo);
-            }
-        }
-
+        List<NodeInfo> nodeInfoList = nodeManager.getNodes();
         model.addAttribute("nodes", nodeInfoList);
         model.addAttribute("NSStatus", nodeRepository.getNSStatus());
         System.out.println(nodeRepository.getNSStatus());
@@ -119,18 +95,8 @@ public class Manager {
     @ResponseBody
     public List<NodeInfo>  getAllNodes() {
         // TO DO: map information from nameserver and this toagether
-        JSONArray nodesJson = nodeManager.sendServerGetRequestArray("localhost:8091","/api/node/info/all");
+        return nodeManager.getNodes();
 
-        List<NodeInfo> nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
-        for(NodeInfo node: nodeInfoList){
-            String name = node.getInfo().getName();
-            Node portInfo = nodeRepository.getNodeByName(name);
-            if(portInfo != null){
-                node.addPortInfo(portInfo);
-                node.getInfo().setStatus(nodeRepository.getStatusByName(name));
-            }
-        }
-         return nodeInfoList;
     }
 
     @GetMapping("/api/node/{name}")
@@ -162,7 +128,11 @@ public class Manager {
     @ResponseBody
     public ResponseEntity<Void> removeNode(@PathVariable String name) {
         Node node = nodeRepository.getNodeByName(name);
+        if(nodeRepository.getStatusByName(name)){
+            nodeManager.startStopNode(node,true);
+        }
         nodeRepository.removeNode(node);
+
         return ResponseEntity.ok().build();
     }
 
