@@ -4,10 +4,8 @@ import kaasenwijn.NetworkManager.model.Node;
 import kaasenwijn.NetworkManager.model.NodeInfo;
 import kaasenwijn.NetworkManager.repository.NodeRepository;
 import kaasenwijn.NetworkManager.service.NodeManager;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,8 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Controller
@@ -34,7 +30,7 @@ public class Manager {
         model.addAttribute("nodes", nodeInfoList);
         model.addAttribute("NSStatus", nodeRepository.getNSStatus());
         System.out.println(nodeRepository.getNSStatus());
-
+        System.out.println(nodeInfoList);
         return "index";
     }
 
@@ -76,6 +72,7 @@ public class Manager {
         //TODO: make dynamic
         nodeRepository.setNSStatus(true);
         String output = nodeManager.startStopNS(false);
+        boolean status = nodeManager.isNSUp();
         return ResponseEntity.ok().build();
     }
 

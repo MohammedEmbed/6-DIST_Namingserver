@@ -1,6 +1,8 @@
 package kaasenwijn.NetworkManager.repository;
 
 import kaasenwijn.NetworkManager.model.Node;
+import kaasenwijn.NetworkManager.service.NodeManager;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,6 +31,10 @@ public class NodeRepository {
     private NodeRepository() {
         nodeMap.put(2011,new ArrayList<>());
         nodeMap.put(2012,new ArrayList<>());
+
+        // Check NameServer status
+        Boolean status = NodeManager.serverStatusCheck();
+        NSStatus = status;
     }
 
     public static synchronized NodeRepository getInstance() {

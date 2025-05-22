@@ -28,7 +28,7 @@ func main() {
 	jarFileServer := filepath.Join(projectDirServer, "target", "Namingserver-0.0.1-SNAPSHOT.jar")
 
 	if *kill {
-		L.KillRemoteJar(server)
+		L.KillRemoteJar(server, true)
 	} else {
 		L.SetupRemoteHost(server, false, false, jarFileServer, false, true)
 		log.Println("Skipping JAR build installation.")

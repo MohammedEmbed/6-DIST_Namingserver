@@ -40,7 +40,7 @@ func main() {
 		NSHTTPPort: AddNamingServer.NSHTTPPort,
 	}
 	if *kill {
-		L.KillRemoteJar(node)
+		L.KillRemoteJar(node, false)
 	} else {
 		L.SetupRemoteHost(node, false, false, jarFile, true, true)
 	}

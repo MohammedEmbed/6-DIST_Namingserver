@@ -272,7 +272,13 @@ func DeleteLogFile(hostInfo Node, sshClient *ssh.Client) {
 	RemoteExecuteCmd(cmd, sshClient)
 }
 
-func KillRemoteJar(hostInfo Node) {
+func DeleteDBFile(hostInfo Node, sshClient *ssh.Client) {
+	serverFile := fmt.Sprintf("%sdatabase.json", logFilePath)
+	cmd := fmt.Sprintf(`rm -f "%s"`, serverFile)
+	RemoteExecuteCmd(cmd, sshClient)
+}
+
+func KillRemoteJar(hostInfo Node, server bool) {
 	fullHost := hostInfo.Host + ":" + strconv.Itoa(hostInfo.Port)
 	// Manually create SSH client (separate from SCP)
 	sshClient := CreateSSHClient(fullHost)
@@ -280,6 +286,9 @@ func KillRemoteJar(hostInfo Node) {
 	fullCmd := "pkill -f " + hostInfo.Name
 	RemoteExecuteCmd(fullCmd, sshClient)
 	DeleteLogFile(hostInfo, sshClient)
+	if server {
+		DeleteDBFile(hostInfo, sshClient)
+	}
 }
 
 func CreateDirectories(hostInfo Node, sshClient *ssh.Client) {

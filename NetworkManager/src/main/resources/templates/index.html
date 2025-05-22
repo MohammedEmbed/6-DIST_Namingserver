@@ -74,14 +74,14 @@
             return;
         }
         fetch('/api/node/add/'+nodeName).then(()=>{
-            setTimeout(()=>{           window.location.reload();},1000)
+            setTimeout(()=>{           window.location.reload();},500)
         });
     }
     function startNS(){
         const startText = document.getElementById("start-text");
         startText.textContent = "Starting...";
         fetch('/api/ns/start'+name).then(()=>{
-            setTimeout(()=>{           window.location.reload();},7000)
+            setTimeout(()=>{           window.location.reload();},500)
         });
     }
 

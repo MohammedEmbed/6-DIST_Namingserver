@@ -31,7 +31,7 @@ if errorlevel 1 (
 
 :: Step 2: Run instances with different IPs and ports
 echo Starting servers and agents
-set NS_IP=127.0.0.1
+set NS_IP=./127.0.0.1
 set NS_PORT=8090
 for %%A in (%IP_PORT_LIST%) do (
     :: Split the pair into IP and Port using the colon (":") delimiter

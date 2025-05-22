@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class NodeManager {
@@ -33,6 +35,20 @@ public class NodeManager {
         String output = runGoScript(pb,false);
 
         return output.toString();
+    }
+
+
+    public Boolean isNSUp() {
+        try {
+            while(true){
+                boolean status = serverStatusCheck();
+                if(status) break;
+                Thread.sleep(10000);
+            }
+        }catch (Exception e){
+
+        }
+        return true;
     }
 
     public String startStopNode(Node node, boolean kill) {
@@ -83,6 +99,27 @@ public class NodeManager {
 
     }
 
+    public Process runGoProcess(ProcessBuilder pb) {
+        StringBuilder output = new StringBuilder();
+        try {
+            // Assume goscript binary is in the project root
+            // ProcessBuilder pb = new ProcessBuilder("go run ./logviewer.go --host  6dist.idlab.uantwerpen.be --port 2011 --name Warre");
+            String cwd = System.getProperty("user.dir");
+
+            // Resolve parent directory "../infrastructure"
+            File goDir = new File(cwd).getParentFile(); // go one level up
+            File infraDir = new File(goDir, "infrastructure");
+            pb.directory(infraDir);
+
+            Process process = pb.start();
+            return process;
+
+        } catch (Exception e) {
+            output.append("Error running Go script: ").append(e.getMessage());
+        }
+        return null;
+    }
+
     public String startStopNS(boolean kill){
         ProcessBuilder pb = new ProcessBuilder(
                 "go", "run", "./manageNS.go",
@@ -91,12 +128,12 @@ public class NodeManager {
         return runGoScript(pb,false);
     }
 
-    public void startTunnelNS(){
-        ProcessBuilder pb = new ProcessBuilder(
-                "go", "run", "./tunnel.go"
-        );
-        runGoScript(pb,true);
-    }
+//    public void startTunnelNS(){
+//        ProcessBuilder pb = new ProcessBuilder(
+//                "go", "run", "./tunnel.go"
+//        );
+//        runGoScript(pb,false);
+//    }
 
 
     public void addNode(String name){
@@ -165,24 +202,51 @@ public class NodeManager {
         return null;
     }
 
+    public  static Boolean serverStatusCheck(){
+
+        try {
+            System.out.println("server GET request too: "+"http://localhost:8091/api/node/status");
+            URL url = new URL("http://localhost:8091/api/node/status");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                conn.disconnect();
+                return true;
+
+            } else {
+                conn.disconnect();
+                return false;
+            }
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public List<NodeInfo> getNodes(){
         HashMap<String,Boolean> nameLookUp = new HashMap<>();
-        List<NodeInfo> nodeInfoList;
+        List<NodeInfo> nodeInfoList = new ArrayList<>();
         if(nodeRepository.getNSStatus()){
             JSONArray nodesJson = sendServerGetRequestArray("localhost:8091","/api/node/info/all");
-            nodeInfoList = NodeInfo.fromJSONArray(nodesJson);
-            for(NodeInfo node: nodeInfoList){
+            List<NodeInfo> nodes = NodeInfo.fromJSONArray(nodesJson);
+            for(NodeInfo node: nodes){
                 nameLookUp.put(node.getInfo().getName(),true);
                 Node portInfo = nodeRepository.getNodeByName(node.getInfo().getName());
                 if(portInfo != null){
                     node.addPortInfo(portInfo);
-                    node.getInfo().setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                    NodeInfo.Info i = node.getInfo();
+                    i.setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                    node.setInfo(i);
                 }
+                nodeInfoList.add(node);
             }
         }else{
             nodeInfoList = new ArrayList<>();
         }
-
         for(Node node: nodeRepository.getAll()){
             if(!nameLookUp.getOrDefault(node.getName(),false)){
                 NodeInfo nodeInfo = new NodeInfo(new NodeInfo.Info(-1,-1,-1,node.getName(),nodeRepository.getStatusByName(node.getName())),new ArrayList<>(),new ArrayList<>());
@@ -192,6 +256,5 @@ public class NodeManager {
         }
         return nodeInfoList;
     }
-
 
 }

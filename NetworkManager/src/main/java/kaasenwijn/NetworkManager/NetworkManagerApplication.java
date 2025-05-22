@@ -9,9 +9,6 @@ public class NetworkManagerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(NetworkManagerApplication.class, args);
-
-		new NodeManager().startTunnelNS();
-
 	}
 
 }

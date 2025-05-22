@@ -117,4 +117,9 @@ public class NodeController {
         return ResponseEntity.ok().body(dataList.toString());
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<Void> getStatus() {
+        return ResponseEntity.ok().build();
+    }
+
 }

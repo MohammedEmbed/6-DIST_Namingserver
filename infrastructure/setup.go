@@ -19,24 +19,24 @@ var NamingServer = L.Node{
 	NSIP:       "172.18.0.5",
 }
 var nodes = []L.Node{
-	{
-		Host:       "6dist.idlab.uantwerpen.be",
-		Port:       2011,
-		Name:       "Warre",
-		NPort:      8010,
-		NSIP:       NamingServer.NSIP,
-		NSPort:     NamingServer.NSPort,
-		NSHTTPPort: NamingServer.NSHTTPPort,
-	},
-	{
-		Host:       "6dist.idlab.uantwerpen.be",
-		Port:       2012,
-		Name:       "Arvo",
-		NPort:      8011,
-		NSIP:       NamingServer.NSIP,
-		NSPort:     NamingServer.NSPort,
-		NSHTTPPort: NamingServer.NSHTTPPort,
-	},
+	//{
+	//	Host:       "6dist.idlab.uantwerpen.be",
+	//	Port:       2011,
+	//	Name:       "Warre",
+	//	NPort:      8010,
+	//	NSIP:       NamingServer.NSIP,
+	//	NSPort:     NamingServer.NSPort,
+	//	NSHTTPPort: NamingServer.NSHTTPPort,
+	//},
+	//{
+	//	Host:       "6dist.idlab.uantwerpen.be",
+	//	Port:       2012,
+	//	Name:       "Arvo",
+	//	NPort:      8011,
+	//	NSIP:       NamingServer.NSIP,
+	//	NSPort:     NamingServer.NSPort,
+	//	NSHTTPPort: NamingServer.NSHTTPPort,
+	//},
 	//{
 	//    Host:   "6dist.idlab.uantwerpen.be",
 	//    Port:   2011,
@@ -72,7 +72,7 @@ func main() {
 	}
 
 	if *killAll {
-		L.KillRemoteJar(NamingServer)
+		L.KillRemoteJar(NamingServer, true)
 	} else {
 		// Setup Naming server
 		L.SetupRemoteHost(NamingServer, *build, *installDeps, jarFileServer, false, true)
@@ -88,7 +88,7 @@ func main() {
 		go func(n L.Node) {
 			defer wg.Done()
 			if *killAll {
-				L.KillRemoteJar(n)
+				L.KillRemoteJar(n, false)
 			} else {
 				L.SetupRemoteHost(n, *build, *installDeps, jarFile, true, true)
 				StartLogging(n)
