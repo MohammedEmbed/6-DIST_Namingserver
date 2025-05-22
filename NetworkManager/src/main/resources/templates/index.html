@@ -10,8 +10,7 @@
 <h1 class="text-huge">Kaas & Wijn system Y</h1>
 
 <h2 class="text-big">Name Server</h2>
-<p>Status: <span th:text="${NSStatus ? 'Running' : 'Stopped'}"></span></p>
-<p id="start-text"></p>
+<p>Status: <span id="start-text" th:text="${NSStatus ? 'Running' : 'Stopped'}"></span></p>
 <button th:if="${!NSStatus}" class="button button--green button--mobileFull" onclick="startNS()">Start NS</button>
 <button th:if="${NSStatus}" class="button button--red button--mobileFull" onclick="stopNS()">Stop NS</button>
 

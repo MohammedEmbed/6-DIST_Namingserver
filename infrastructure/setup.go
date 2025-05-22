@@ -19,31 +19,42 @@ var NamingServer = L.Node{
 	NSIP:       "172.18.0.5",
 }
 var nodes = []L.Node{
-	//{
-	//	Host:       "6dist.idlab.uantwerpen.be",
-	//	Port:       2011,
-	//	Name:       "Warre",
-	//	NPort:      8010,
-	//	NSIP:       NamingServer.NSIP,
-	//	NSPort:     NamingServer.NSPort,
-	//	NSHTTPPort: NamingServer.NSHTTPPort,
-	//},
-	//{
-	//	Host:       "6dist.idlab.uantwerpen.be",
-	//	Port:       2012,
-	//	Name:       "Arvo",
-	//	NPort:      8011,
-	//	NSIP:       NamingServer.NSIP,
-	//	NSPort:     NamingServer.NSPort,
-	//	NSHTTPPort: NamingServer.NSHTTPPort,
-	//},
-	//{
-	//    Host:   "6dist.idlab.uantwerpen.be",
-	//    Port:   2011,
-	//    Name:   "Warre",
-	//    NSIP:   "127.0.0.1",
-	//    NSPort: 8090,
-	//},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2011,
+		Name:       "Warre",
+		NPort:      8010,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2012,
+		Name:       "Arvo",
+		NPort:      8011,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2014,
+		Name:       "Daan",
+		NPort:      8011,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
+	{
+		Host:       "6dist.idlab.uantwerpen.be",
+		Port:       2015,
+		Name:       "Mohammed",
+		NPort:      8011,
+		NSIP:       NamingServer.NSIP,
+		NSPort:     NamingServer.NSPort,
+		NSHTTPPort: NamingServer.NSHTTPPort,
+	},
 }
 
 func main() {

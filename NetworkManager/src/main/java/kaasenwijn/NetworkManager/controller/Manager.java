@@ -29,9 +29,15 @@ public class Manager {
         List<NodeInfo> nodeInfoList = nodeManager.getNodes();
         model.addAttribute("nodes", nodeInfoList);
         model.addAttribute("NSStatus", nodeRepository.getNSStatus());
-        System.out.println(nodeRepository.getNSStatus());
-        System.out.println(nodeInfoList);
         return "index";
+    }
+
+    @GetMapping("/detail/{name}")
+    public String detail(Model model, @PathVariable String name) {
+        NodeInfo node = nodeManager.getNode(name);
+        model.addAttribute("node", node);
+        model.addAttribute("NSStatus", nodeRepository.getNSStatus());
+        return "detail";
     }
 
     // Get logs of a node
@@ -51,6 +57,7 @@ public class Manager {
         Node node = nodeRepository.getNodeByName(name);
         nodeRepository.startNode(node);
         nodeManager.startStopNode(node,false);
+        nodeManager.isNodeUp(name);
         return ResponseEntity.ok().build();
     }
 

@@ -31,9 +31,12 @@ public class NodeRepository {
     private NodeRepository() {
         nodeMap.put(2011,new ArrayList<>());
         nodeMap.put(2012,new ArrayList<>());
+        nodeMap.put(2014,new ArrayList<>());
+        nodeMap.put(2015,new ArrayList<>());
+
 
         // Check NameServer status
-        Boolean status = NodeManager.serverStatusCheck();
+        Boolean status = NodeManager.serverStatusCheck("");
         NSStatus = status;
     }
 

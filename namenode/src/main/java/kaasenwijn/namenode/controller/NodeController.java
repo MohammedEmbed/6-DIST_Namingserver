@@ -16,4 +16,9 @@ public class NodeController {
         return ResponseEntity.ok().body(data.toString());
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<Void> getStatus() {
+        return ResponseEntity.ok().build();
+    }
+
 }

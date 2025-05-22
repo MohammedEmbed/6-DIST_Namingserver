@@ -102,4 +102,32 @@ public class NameService {
         return null;
     }
 
+    public static  Boolean sendServerStatusCheck(String dest, String path){
+
+        try {
+            System.out.println("server GET request too: "+"http://" + dest  + path);
+            URL url = new URL("http://" + dest + path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return true;
+
+            } else {
+                System.out.println("Error: failed GET request with response code: " + responseCode);
+                conn.disconnect();
+                return false;
+            }
+
+
+        } catch (Exception e) {
+            System.err.println("Error: failed GET request to " + dest);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }

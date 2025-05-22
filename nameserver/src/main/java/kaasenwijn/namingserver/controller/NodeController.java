@@ -121,5 +121,17 @@ public class NodeController {
     public ResponseEntity<Void> getStatus() {
         return ResponseEntity.ok().build();
     }
-
+    @GetMapping("/status/{name}")
+    public ResponseEntity<?> GetNodeStatus(@PathVariable String name) {
+        int id = NameService.getHash(name);
+        if (!ipRepo.ipExists(id)) {
+            System.out.println("Node " + id + " not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        NodeIp node = new NodeIp(id, ipRepo.getIp(id));
+        int port = node.port+1;
+        String dest = node.ip+":"+port;
+        Boolean data = NameService.sendServerStatusCheck(dest,"/api/node/status");
+        return ResponseEntity.ok().body("{'status':"+data+"}");
+    }
 }

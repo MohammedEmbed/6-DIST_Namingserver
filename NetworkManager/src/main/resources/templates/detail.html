@@ -7,102 +7,243 @@
     <link rel="stylesheet" type="text/css" media="all" href="https://sierra-library.github.io/css/styles.min.css">
     <style>
         .nodegrid{
-            display : inline-grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(1,1fr);
+            /*display : inline-grid;*/
+            /*grid-template-columns: repeat(2, 1fr);*/
+            /*grid-template-rows: repeat(1,1fr);*/
         }
 
         .nodeinfo{
 
         }
         .nodelog{
-            overflow-y : scroll;
-            height:500px;
+            /*overflow-y : scroll;*/
+            /*height:500px;*/
 
         }
         .nodefiles{
-            width:100%;
-            display : inline-grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(1,1fr);
+            /*width:100%;*/
+            /*display : inline-grid;*/
+            /*grid-template-columns: repeat(2, 1fr);*/
+            /*grid-template-rows: repeat(1,1fr);*/
+        }
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            border-radius: 8px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .highlight {
+            background-color: yellow;
+            color: black;
+            font-weight: bold;
+        }
+        .log-info {
+            color: lightgreen;
+        }
+        .log-warn {
+            color: orange;
+        }
+        .log-error {
+            color: red;
         }
     </style>
 </head>
 <body class="container">
-<h1 class="text-huge">Node name:</h1>
-<div class="nodegrid">
-    <div class="infodiv">
-    <div>
-        <button class="button button--green button--mobileFull">start</button>
-        <button class="button button--red button--mobileFull">stop</button>
-        <a href="index.html">
-            <button class="button button--primary button--mobileFull">return to server</button>
-        </a>
-    </div>
-
-    <hr>
-
-    <div class="nodeinfo">
-        <h class="text-big"> Node info:</h>
-        <p>Can we honestly e date?<br> you’re so beautiful.<br>You always make me laugh, you always make me smile.<br></p>
-    </div>
-    <hr>
-        <div class="nodefiles">
-            <table>
-                <th>Local files:</th>
-                <tr>
-                    <td>file1</td>
-                </tr>
-                <tr>
-                    <td>file2</td>
-                </tr>
-                <tr>
-                    <td>file3</td>
-                </tr>
-                <tr>
-                    <td>file4</td>
-                </tr>
-                <tr>
-                    <td>file5</td>
-                </tr>
-
-
-            </table>
-            <table>
-                <th>Replicated files:</th>
-                <tr>
-                    <td>file1</td>
-                </tr>
-                <tr>
-                    <td>file2</td>
-                </tr>
-                <tr>
-                    <td>file3</td>
-                </tr>
-                <tr>
-                    <td>file4</td>
-                </tr>
-                <tr>
-                    <td>file5</td>
-                </tr>
-            </table>
-        </div>
-
-    </div>
-
-    <div class="logdiv">
-        <div class="logbutton">
-            <button class="button button--green button--mobileFull">refresh</button>
-        </div>
-        <hr>
-        <div class="nodelog">
-            <h class="text-big">Node log:</h>
-            <p>Can we honestly e date? you’re so beautiful. You always make me laugh, you always make me smile. You literally make me want to become a better person... I really enjoy every moment we spend together. My time has no value unless its spent with you. I tell everyone of my irls how awesome you are. Thank you for being you. Whenever you need someone to be there for you, know that i’ll always be right there by your side. I love you so much. I don’t think you ever realize how amazing you are sometimes. Life isn’t as fun when you’re not around. You are truly stunning. I want you to be my soulmate. I love the way you smile, your eyes are absolutely gorgeous. If I had a star for everytime you crossed my mind i could make the entire galaxy. Your personality is as pretty as you are and thats saying something. I love you, please date me. I am not even calling it e dating anymore because I know we will meet soon enough heart OK I ADMIT IT I LOVE YOU OK i hecking love you and it breaks my heart when i see you play with someone else or anyone commenting in your profile i just want to be your girlfriend and put a heart in my profile linking to your profile and have a walltext of you commenting cute things i want to play video games talk in discord all night and watch a movie together but you just seem so uninsterested in me it hecking kills me and i cant take it anymore i want to remove you but i care too much about you so please i’m begging you to eaither love me back or remove me and never contact me again it hurts so much to say this because i need you by my side but if you dont love me then i want you to leave because seeing your icon in my friendlist would kill me everyday of my pathetic life.</p>
-        </div>
-
-    </div>
+<div class="flex-box">
+    <a href="/">
+        <button class="button button--primary button--mobileFull">Back</button>
+    </a>
+    <h1 class="text-huge"> <span  th:text="${node.info.name}"></span>&nbsp;(<span id="status-text" th:text="${node.info.status ? 'Running' : 'Stopped'}"></span>)</h1>
 
 </div>
-<meta http-equiv="refresh">
+<div>
+
+    <h3 class="text-big"> Node Control:</h3>
+    <hr>
+    <button th:if="${!node.info.status && NSStatus}" onclick="start()" class="button button--green button--mobileFull">start</button>
+    <button th:if="${node.info.status}" onclick="stop()" class="button button--red button--mobileFull">stop</button>
+    <button onclick="remove()" th:if="${!node.info.status}"  class="button button--red button--mobileFull">Delete</button>
+</div>
+
+<div class="nodegrid">
+        <div class="infodiv ">
+
+
+            <div class="nodeinfo">
+                <h3 class="text-big"> Node info:</h3>
+                <hr>
+                <table class="table table--responsive">
+                    <thead>
+                    <tr class="text-small text-left">
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>Hash</th>
+                        <th>NextId</th>
+                        <th>PreviousId</th>
+                        <th>Location</th>
+                        <th>Port</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td th:text="${node.info.status ? 'Running' : 'Stopped'}"></td>
+                        <td th:text="${node.info.name}"></td>
+                        <td th:text="${node.info.currentId != -1 ? node.info.currentId : 'N/A'}"></td>
+
+                        <td th:text="${node.info.nextId != -1 ? node.info.nextId : 'N/A'}"></td>
+                        <td th:text="${node.info.previousId != -1 ? node.info.previousId : 'N/A'}"></td>
+
+
+                        <td th:text="${node.port != null ? '6dist.idlab.uantwerpen.be:'+node.port.hostPort : 'N/A' }"></td>
+                        <td th:text="${node.port != null  ? node.port.port : 'N/A' }"></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <h3 class="text-big" th:if="${node.info.status}"> Node files:</h3>
+            <hr th:if="${node.info.status}">
+
+            <div th:if="${node.info.status}" class="nodefiles row p-medium" >
+                <table class="table table--responsive col">
+                    <thead>
+                    <tr class="text-small text-left">
+                        <th>Local files</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="file : ${node.localFiles}">
+                        <td th:text="${file}"></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <table class="table table--responsive col">
+                    <thead>
+                    <tr class="text-small text-left">
+                        <th>Replicated files</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="file : ${node.replicatedFiles}">
+                        <td th:text="${file}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="">
+            <div class="logdiv" th:if="${node.info.status}">
+
+                <!--        <div class="logbutton">-->
+                <!--            <button class="button button&#45;&#45;green button&#45;&#45;mobileFull" onclick="loadLogs()">Refresh</button>-->
+                <!--        </div>-->
+                <hr>
+                <div class="nodelog">
+                    <h class="text-big">Logs:</h>
+                    <div class="row p-medium">
+                        <div class="input flex-grow">
+                            <input type="text" id="search" placeholder="Search logs..." onkeyup="highlightText()" />
+                        </div>
+                        <button class="button button--green button--mobileFull" onclick="loadLogs()">Refresh</button>
+
+                    </div>
+                    <pre id="logArea"></pre>
+                    <textarea id="rawLog"  hidden></textarea>
+
+                </div>
+
+            </div>
+        </div>
+</div>
+<script th:inline="javascript">
+    const name = /*[[${node.info.name}]]*/
+    function stop(){
+        const text = document.getElementById("status-text");
+        text.textContent = "Stopping...";
+        fetch('/api/node/stop/'+name).then(()=>{
+            setTimeout(()=>{           window.location.reload();text.textContent="";},500)
+
+        });
+    }
+
+    function start(){
+        const text = document.getElementById("status-text");
+        text.textContent = "Starting...";
+        fetch('/api/node/start/'+name).then(()=>{
+            setTimeout(()=>{           window.location.reload();text.textContent="";},500)
+
+        });
+    }
+
+    function remove(){
+        fetch('/api/node/remove/'+name).then(()=>{
+            setTimeout(()=>{           window.location.href="/";},500)
+
+        });
+    }
+    function loadLogs() {
+        fetch('/api/logs/'+name)
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('rawLog').textContent = data;
+                renderLogs(data);
+                setTimeout(()=>{
+                    const logArea = document.getElementById('logArea');
+                    logArea.scrollTop = logArea.scrollHeight;
+                },500)
+
+            });
+    }
+    window.onload = () => {
+        loadLogs()
+        setInterval(()=>{
+            loadLogs()
+        },30000);
+    };
+
+
+
+    function formatLogLine(line) {
+        if (line.includes("INFO") || line.includes("info")) {
+            return `<span class="log-info">${line}</span>`;
+        } else if (line.includes("WARN") || line.includes("warn")) {
+            return `<span class="log-warn">${line}</span>`;
+        } else if (line.includes("ERROR") || line.includes("error")) {
+            return `<span class="log-error">${line}</span>`;
+        }
+        return line;
+    }
+
+    function renderLogs(text, searchTerm = '') {
+        const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedSearch, 'gi');
+        const lines = text.split('\n');
+
+        const rendered = lines.map(line => {
+            let formatted = formatLogLine(line);
+            if (searchTerm && searchTerm.trim() !== '') {
+                formatted = formatted.replace(regex, match => `<span class="highlight">${match}</span>`);
+            }
+            return formatted;
+        }).join('\n');
+
+        document.getElementById('logArea').innerHTML = rendered;
+    }
+
+    function highlightText() {
+        const search = document.getElementById('search').value;
+        const logText = document.getElementById('rawLog').value;
+        renderLogs(logText, search);
+    }
+
+</script>
 </body>
 </html>

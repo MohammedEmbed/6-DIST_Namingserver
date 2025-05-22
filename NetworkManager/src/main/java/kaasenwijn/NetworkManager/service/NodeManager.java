@@ -16,7 +16,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class NodeManager {
@@ -41,9 +40,22 @@ public class NodeManager {
     public Boolean isNSUp() {
         try {
             while(true){
-                boolean status = serverStatusCheck();
+                boolean status = serverStatusCheck("");
                 if(status) break;
-                Thread.sleep(10000);
+                Thread.sleep(1000);
+            }
+        }catch (Exception e){
+
+        }
+        return true;
+    }
+
+    public Boolean isNodeUp(String name) {
+        try {
+            while(true){
+                boolean status = serverStatusCheck("/"+name);
+                if(status) break;
+                Thread.sleep(1000);
             }
         }catch (Exception e){
 
@@ -99,27 +111,6 @@ public class NodeManager {
 
     }
 
-    public Process runGoProcess(ProcessBuilder pb) {
-        StringBuilder output = new StringBuilder();
-        try {
-            // Assume goscript binary is in the project root
-            // ProcessBuilder pb = new ProcessBuilder("go run ./logviewer.go --host  6dist.idlab.uantwerpen.be --port 2011 --name Warre");
-            String cwd = System.getProperty("user.dir");
-
-            // Resolve parent directory "../infrastructure"
-            File goDir = new File(cwd).getParentFile(); // go one level up
-            File infraDir = new File(goDir, "infrastructure");
-            pb.directory(infraDir);
-
-            Process process = pb.start();
-            return process;
-
-        } catch (Exception e) {
-            output.append("Error running Go script: ").append(e.getMessage());
-        }
-        return null;
-    }
-
     public String startStopNS(boolean kill){
         ProcessBuilder pb = new ProcessBuilder(
                 "go", "run", "./manageNS.go",
@@ -150,10 +141,12 @@ public class NodeManager {
     }
 
     public   JSONObject sendServerGetRequestObject(String dest, String path){
-
-
         String jsonString = sendServerGetRequestGetJsonString(dest,path);
-        return new JSONObject(jsonString);
+        if(jsonString != null){
+            return new JSONObject(jsonString);
+
+        }
+        return null;
     }
 
     public  JSONArray sendServerGetRequestArray(String dest, String path){
@@ -202,11 +195,11 @@ public class NodeManager {
         return null;
     }
 
-    public  static Boolean serverStatusCheck(){
+    public  static Boolean serverStatusCheck(String path){
 
         try {
-            System.out.println("server GET request too: "+"http://localhost:8091/api/node/status");
-            URL url = new URL("http://localhost:8091/api/node/status");
+            System.out.println("server GET request too: "+"http://localhost:8091/api/node/status"+path);
+            URL url = new URL("http://localhost:8091/api/node/status"+path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("GET");
@@ -255,6 +248,27 @@ public class NodeManager {
             }
         }
         return nodeInfoList;
+    }
+
+    public NodeInfo getNode(String name){
+        if(nodeRepository.getNSStatus()) {
+            JSONObject nodeJson = sendServerGetRequestObject("localhost:8091", "/api/node/info/" + name);
+            if (nodeJson != null) {
+                NodeInfo node = NodeInfo.fromJSONObject(nodeJson);
+                Node portInfo = nodeRepository.getNodeByName(name);
+                if (portInfo != null) {
+                    node.addPortInfo(portInfo);
+                    NodeInfo.Info i = node.getInfo();
+                    i.setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                    node.setInfo(i);
+                }
+                return node;
+            }
+        }
+
+        NodeInfo nodeInfo = new NodeInfo(new NodeInfo.Info(-1,-1,-1,name,nodeRepository.getStatusByName(name)),new ArrayList<>(),new ArrayList<>());
+        nodeInfo.addPortInfo(nodeRepository.getNodeByName(name));
+        return nodeInfo;
     }
 
 }
