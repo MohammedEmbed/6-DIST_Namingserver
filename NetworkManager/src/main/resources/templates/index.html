@@ -105,12 +105,12 @@
 
             // Connect to the previous node if it exists
             if (previousId !== null) {
-                mermaidGraph += `    ${previousId} -- previous --> ${currentId};\n`;
+                mermaidGraph += `    ${currentId} -- previous --> ${previousId};\n`;
             }
 
             // Connect to the next node if it exists
             if (nextId !== null) {
-                mermaidGraph += `    ${nextId} -- next --> ${currentId};\n`;
+                mermaidGraph += `    ${currentId} -- next --> ${nextId};\n`;
             }
         });
 
