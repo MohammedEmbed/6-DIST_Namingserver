@@ -19,7 +19,6 @@ public class NodeRepository {
     public static synchronized NodeRepository getInstance() {
         if (instance == null) {
             instance = new NodeRepository();
-
         }
 
         return instance;

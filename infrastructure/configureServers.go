@@ -56,7 +56,7 @@ var servers = []L.Node{
 
 func main() {
 	build := flag.Bool("build", true, "Build java jar file and upload it to the remote host")
-	installDeps := flag.Bool("dependencies", true, "Install Java and Maven on the remote host")
+	installDeps := flag.Bool("dependencies", false, "Install Java and Maven on the remote host")
 
 	// Define where the node project is located: on local host
 	projectDir, _ := filepath.Abs("../namenode")

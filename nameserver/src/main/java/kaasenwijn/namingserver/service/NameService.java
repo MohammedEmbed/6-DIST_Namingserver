@@ -33,12 +33,12 @@ public class NameService {
 
     public static Integer getFileOwnerId(Integer fileHash, int senderId){
         int best = senderId;
-        int largest = senderId;
+        int largest = -1;
         for(Integer nodeId : IpRepository.getAllIds()){
             if(nodeId < fileHash && nodeId != senderId){
                 best =nodeId;
             }
-            if(nodeId > largest){
+            if(nodeId > largest && nodeId != senderId){
                 largest = nodeId;
             }
         }

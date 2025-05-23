@@ -276,6 +276,10 @@ func DeleteDBFile(hostInfo Node, sshClient *ssh.Client) {
 	serverFile := fmt.Sprintf("%sdatabase.json", logFilePath)
 	cmd := fmt.Sprintf(`rm -f "%s"`, serverFile)
 	RemoteExecuteCmd(cmd, sshClient)
+
+	serverFile2 := fmt.Sprintf("%sfile_ownership.json", logFilePath)
+	cmd2 := fmt.Sprintf(`rm -f "%s"`, serverFile2)
+	RemoteExecuteCmd(cmd2, sshClient)
 }
 
 func KillRemoteJar(hostInfo Node, server bool) {

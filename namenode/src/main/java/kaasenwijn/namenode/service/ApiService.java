@@ -73,30 +73,6 @@ public class ApiService {
         return null;
     }
 
-    private int sendServerPostRequest(String filename, File file, String targetIp, String path){
-        try {
-            URL url = new URL("http://" + targetIp+":"+nodeRepository.getNamingServerHTTPPort()  + path);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("File-Name", filename);
-            conn.setRequestProperty("Content-Type", "application/octet-stream");
-
-            try (OutputStream os = conn.getOutputStream(); FileInputStream fis = new FileInputStream(file)) {
-                fis.transferTo(os);
-            }
-
-            int responseCode = conn.getResponseCode();
-            conn.disconnect();
-            return responseCode;
-
-        }catch(Exception e){
-            System.err.println("Error: failed POST request to " + targetIp);
-            e.printStackTrace();
-            return 500;
-        }
-    }
-
     public void deleteNodeRequest(String currentName) {
         String namingServerIp = nodeRepository.getNamingServerIp();
         String path = "/api/node/" + currentName;
@@ -145,32 +121,6 @@ public class ApiService {
         return sendServerGetRequest(namingServerIp,path);
     }
 
-    public void postFileRequest(String filename,File file, String targetIp){
-        String path = "/api/node/files/replicate";
-        int responseCode = sendServerPostRequest(filename, file, targetIp, path);
-        if (responseCode == 200) {
-            System.out.println(filename +"POST request successfully transferred "+ filename +" to "+targetIp);
-        } else {
-            System.err.println("Error: failed to send POST request of " + filename + " to " + targetIp + " — HTTP " + responseCode);
-        }
-    }
-
-    public boolean checkFileRequest(String nodeIp, String filename){
-        try {
-            URL url = new URL("http://" + nodeIp + ":"+nodeRepository.getNamingServerHTTPPort() +"/api/node/files/has/" + filename);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(1000);
-            conn.setReadTimeout(1000);
-
-            return conn.getResponseCode() == 200;
-        } catch (Exception e) {
-            System.err.println("Failed to check if node " + nodeIp + " has file " + filename);
-            return false;
-        }
-    }
-    private static final String NAMING_SERVER_URL = "http://localhost:8080"; // Adjust to your actual Naming Server address
-
     public static boolean acquireFileLock(String fileName, int nodeId) {
         String path = "/api/lock/acquire";
         JSONObject body = new JSONObject();
@@ -202,7 +152,8 @@ public class ApiService {
     }
 
     private static int sendHttpRequest(String method, String path, String jsonBody) throws Exception {
-        URL url = new URL(NAMING_SERVER_URL + path);
+        URL url = new URL("http://"+nodeRepository.getNamingServerIp()+":"+nodeRepository.getNamingServerHTTPPort() + path);
+        System.out.println("http://"+nodeRepository.getNamingServerIp()+":"+nodeRepository.getNamingServerHTTPPort()+path);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Type", "application/json");
