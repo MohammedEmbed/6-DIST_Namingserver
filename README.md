@@ -24,7 +24,7 @@ Please checkout the [readme](infrastructure/readme.md) in infrastructure to conf
 ## Running
 Start the NetworkManager to start/stop the Naming server and add/remove nodes to the network.
 ## Contributors
-- **Warre Hofmans** (Project Lead)
+- **Warre Hofmans**
 - **Daan DeKoning**
 - **Mohammed Hamdouen**
 - **Arvo Cant**
