@@ -1,39 +1,32 @@
 # Distributed Systems Project - Kaas & Wijn
 
 ## Overview
-This project is a lightweight naming server designed to manage a distributed set of nodes by mapping service names to IP addresses. The system provides RESTful endpoints to register, lookup, and remove services dynamically.
-
+This system implements a distributed file replication network with a central naming server and a ring-based node architecture. The naming server maintains metadata and coordinates node activity, while the nodes form a logical ring to replicate files among each other efficiently. A user-friendly GUI is included for automated node deployment and real-time monitoring, streamlining setup and management of the entire network.
 ## Project Structure
-src/
-│── controller/
-│   ├── FileController.java   # TODO: File operations (placeholder)
-│   ├── NodeController.java   # REST API for managing nodes
-│── model/
-│   ├── Node.java             # Data model for registered nodes
-│── repository/
-│   ├── IpRepository.java     # Handles JSON storage of node IPs
-│── service/
-│   ├── NameService.java      # Hashing logic for node identification
+
+project-root/ \
+│── infrastructure/ \
+│── namenode/ \
+│── nameserver/ \
+│── NetworkManager/ 
+
+The project contains the following sub-folders:
+
+- infrastructure: Contains go scripts for server management
+- namenode: contains the code for the nodes
+- nameserver: contains the code for the Naming server
+- NetworkManager: contians the code for the GUI, using the scripts of infrastructure
 
 
 ## Installation and Setup
-TO DO
-## Run nodes
-````
-start_nodes.bat
-````
-## API Endpoints
-| Endpoint            | Method | Description |
-|---------------------|--------|-------------|
-| `/register`        | POST   | Registers a new service |
-| `/lookup/<name>`   | GET    | Retrieves the address of a registered service |
-| `/unregister/<name>` | DELETE | Removes a service from the registry |
+Please checkout the [readme](infrastructure/readme.md) in infrastructure to configure the servers and start a tunnel.
 
-
+## Running
+Start the NetworkManager to start/stop the Naming server and add/remove nodes to the network.
 ## Contributors
-- **Warros Hofmanos** (Project Lead)
-- **Daanos DeKoningos**
-- **Mohammedos Hamdouenos**
-- **Arvos Cantos**
+- **Warre Hofmans** (Project Lead)
+- **Daan DeKoning**
+- **Mohammed Hamdouen**
+- **Arvo Cant**
 
 

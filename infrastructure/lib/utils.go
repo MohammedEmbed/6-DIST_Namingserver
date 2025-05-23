@@ -288,6 +288,8 @@ func KillRemoteJar(hostInfo Node, server bool) {
 	DeleteLogFile(hostInfo, sshClient)
 	if server {
 		DeleteDBFile(hostInfo, sshClient)
+	} else {
+		DeleteDirectories(hostInfo, sshClient)
 	}
 }
 
@@ -296,6 +298,15 @@ func CreateDirectories(hostInfo Node, sshClient *ssh.Client) {
 		mkdir -p "local_files_%[1]s" && \
 		mkdir -p "logs_%[1]s" && \
 		mkdir -p "replicated_files_%[1]s"
+	`, hostInfo.Name)
+	RemoteExecuteCmd(cmd, sshClient)
+}
+
+func DeleteDirectories(hostInfo Node, sshClient *ssh.Client) {
+	cmd := fmt.Sprintf(`
+		rm -rf "local_files_%[1]s" && \
+		rm -rf "logs_%[1]s" && \
+		rm -rf "replicated_files_%[1]s"
 	`, hostInfo.Name)
 	RemoteExecuteCmd(cmd, sshClient)
 }

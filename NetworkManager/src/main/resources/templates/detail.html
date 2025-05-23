@@ -6,27 +6,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" media="all" href="https://sierra-library.github.io/css/styles.min.css">
     <style>
-        .nodegrid{
-            /*display : inline-grid;*/
-            /*grid-template-columns: repeat(2, 1fr);*/
-            /*grid-template-rows: repeat(1,1fr);*/
-        }
 
-        .logdiv{
-            width : 500px;
-        }
-
-        .nodelog{
-            /*overflow-y : scroll;*/
-            /*height:500px;*/
-
-        }
-        .nodefiles{
-            /*width:100%;*/
-            /*display : inline-grid;*/
-            /*grid-template-columns: repeat(2, 1fr);*/
-            /*grid-template-rows: repeat(1,1fr);*/
-        }
         pre {
             background-color: #1e1e1e;
             color: #d4d4d4;
@@ -71,7 +51,7 @@
     <button onclick="remove()" th:if="${!node.info.status}"  class="button button--red button--mobileFull">Delete</button>
 </div>
 
-<div class="nodegrid">
+<div>
         <div class="infodiv ">
 
 
@@ -110,7 +90,7 @@
             <h3 class="text-big" th:if="${node.info.status}"> Node files:</h3>
             <hr th:if="${node.info.status}">
 
-            <div th:if="${node.info.status}" class="nodefiles row p-medium" >
+            <div th:if="${node.info.status}" class="row p-medium" >
                 <table class="table table--responsive col">
                     <thead>
                     <tr class="text-small text-left">
@@ -141,13 +121,10 @@
         </div>
 
         <div class="">
-            <div class="logdiv" th:if="${node.info.status}">
+            <div class="" th:if="${node.info.status}">
 
-                <!--        <div class="logbutton">-->
-                <!--            <button class="button button&#45;&#45;green button&#45;&#45;mobileFull" onclick="loadLogs()">Refresh</button>-->
-                <!--        </div>-->
                 <hr>
-                <div class="nodelog">
+                <div class="">
                     <h class="text-big">Logs:</h>
                     <div class="row p-medium">
                         <div class="input flex-grow">

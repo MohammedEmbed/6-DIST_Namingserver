@@ -5,7 +5,6 @@ import kaasenwijn.NetworkManager.service.NodeManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NodeRepository {
     // Maps which nodes are deployed on which container
@@ -123,5 +122,12 @@ public class NodeRepository {
     public  Boolean getStatusByName(String name){
         return this.statusNodeMap.getOrDefault(name,false);
     }
+
+    public  void setStatusByName(String name,Boolean status){
+        this.statusNodeMap.put(name,status);
+    }
+
+
+
 
 }

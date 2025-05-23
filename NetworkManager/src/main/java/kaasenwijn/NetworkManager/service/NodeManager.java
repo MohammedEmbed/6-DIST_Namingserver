@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,9 +21,6 @@ public class NodeManager {
     private final NodeRepository nodeRepository = NodeRepository.getInstance();
 
     public String getLogs(Node node) {
-
-        // Assume goscript binary is in the project root
-        // ProcessBuilder pb = new ProcessBuilder("go run ./logviewer.go --host  6dist.idlab.uantwerpen.be --port 2011 --name Warre");
         ProcessBuilder pb = new ProcessBuilder(
                 "go", "run", "./logviewer.go",
                 "--port", String.valueOf(node.getHostPort()),
@@ -32,7 +28,6 @@ public class NodeManager {
                 "--static"
         );
         String output = runGoScript(pb,false);
-
         return output.toString();
     }
 
@@ -64,9 +59,6 @@ public class NodeManager {
     }
 
     public String startStopNode(Node node, boolean kill) {
-
-        // Assume goscript binary is in the project root
-        // ProcessBuilder pb = new ProcessBuilder("go run ./logviewer.go --host  6dist.idlab.uantwerpen.be --port 2011 --name Warre");
         ProcessBuilder pb = new ProcessBuilder(
                 "go", "run", "./manageNode.go",
                 "--host-port", String.valueOf(node.getHostPort()),
@@ -108,7 +100,6 @@ public class NodeManager {
             output.append("Error running Go script: ").append(e.getMessage());
         }
         return "";
-
     }
 
     public String startStopNS(boolean kill){
@@ -119,25 +110,12 @@ public class NodeManager {
         return runGoScript(pb,false);
     }
 
-//    public void startTunnelNS(){
-//        ProcessBuilder pb = new ProcessBuilder(
-//                "go", "run", "./tunnel.go"
-//        );
-//        runGoScript(pb,false);
-//    }
-
-
     public void addNode(String name){
         // TO DO: handle case if no nodes are free
         int targetPort = nodeRepository.findLeastLoadedServer();
         int freePort = nodeRepository.findFreePort(targetPort);
         Node node=new Node(targetPort,freePort,name);
         nodeRepository.addNode(node);
-        //        startStopNode(node,false);
-//        nodeRepository.startNode(node);
-
-        System.out.println("Added "+node);
-
     }
 
     public   JSONObject sendServerGetRequestObject(String dest, String path){
@@ -150,16 +128,12 @@ public class NodeManager {
     }
 
     public  JSONArray sendServerGetRequestArray(String dest, String path){
-
-
         String jsonString = sendServerGetRequestGetJsonString(dest,path);
         return new JSONArray(jsonString);
     }
 
     public   String sendServerGetRequestGetJsonString(String dest, String path){
-
         try {
-            System.out.println("server GET request too: "+"http://" + dest  + path);
             URL url = new URL("http://" + dest + path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
@@ -187,7 +161,6 @@ public class NodeManager {
                 conn.disconnect();
             }
 
-
         } catch (Exception e) {
             System.err.println("Error: failed GET request to " + dest);
             e.printStackTrace();
@@ -198,7 +171,6 @@ public class NodeManager {
     public  static Boolean serverStatusCheck(String path){
 
         try {
-            System.out.println("server GET request too: "+"http://localhost:8091/api/node/status"+path);
             URL url = new URL("http://localhost:8091/api/node/status"+path);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
@@ -259,7 +231,14 @@ public class NodeManager {
                 if (portInfo != null) {
                     node.addPortInfo(portInfo);
                     NodeInfo.Info i = node.getInfo();
-                    i.setStatus(nodeRepository.getStatusByName(node.getInfo().getName()));
+                    Boolean status;
+                    if(nodeRepository.getNSStatus()){
+                            status = serverStatusCheck("/"+name);
+                            nodeRepository.setStatusByName(name,status);
+                    }else{
+                        status = nodeRepository.getStatusByName(node.getInfo().getName());
+                    }
+                    i.setStatus(status);
                     node.setInfo(i);
                 }
                 return node;
