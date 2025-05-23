@@ -4,7 +4,6 @@ import kaasenwijn.NetworkManager.model.Node;
 import kaasenwijn.NetworkManager.model.NodeInfo;
 import kaasenwijn.NetworkManager.repository.NodeRepository;
 import kaasenwijn.NetworkManager.service.NodeManager;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -32,6 +31,7 @@ public class Manager {
         return "index";
     }
 
+    // Return html detail page
     @GetMapping("/detail/{name}")
     public String detail(Model model, @PathVariable String name) {
         NodeInfo node = nodeManager.getNode(name);
@@ -72,7 +72,7 @@ public class Manager {
     }
 
 
-    // Start a the name server
+    // Start naming server
     @GetMapping("/api/ns/start")
     @ResponseBody
     public ResponseEntity<Void> startNS() {
@@ -83,7 +83,7 @@ public class Manager {
         return ResponseEntity.ok().build();
     }
 
-    // Stop the name server
+    // Stop naming server
     @GetMapping("/api/ns/stop")
     @ResponseBody
     public ResponseEntity<Void> stopNS() {
@@ -98,29 +98,19 @@ public class Manager {
     @GetMapping("/api/nodes")
     @ResponseBody
     public List<NodeInfo>  getAllNodes() {
-        // TO DO: map information from nameserver and this toagether
         return nodeManager.getNodes();
 
     }
 
+    // Get a node
     @GetMapping("/api/node/{name}")
     @ResponseBody
-    public NodeInfo  getNode(@PathVariable String name) {
-        // TO DO: map information from nameserver and this toagether
-        JSONObject nodesJson = nodeManager.sendServerGetRequestObject("localhost:8091","/api/node/info/all");
-
-        NodeInfo nodeInfo = NodeInfo.fromJSONObject(nodesJson);
-        Node portInfo = nodeRepository.getNodeByName(name);
-        if(portInfo != null){
-            nodeInfo.addPortInfo(portInfo);
-            nodeInfo.getInfo().setStatus(nodeRepository.getStatusByName(name));
-        }
-        return nodeInfo;
+    public NodeInfo getNode(@PathVariable String name) {
+        return nodeManager.getNode(name);
     }
 
 
-    // To add a node to the network: it will auto be deployed to the server that is hosting the least amount
-    // of nodes already
+    // Add a node, but it isn't deployed yet!
     @GetMapping("/api/node/add/{name}")
     @ResponseBody
     public ResponseEntity<Void> addNode(@PathVariable String name) {
@@ -128,6 +118,7 @@ public class Manager {
         return ResponseEntity.ok().build();
     }
 
+    // Remove a node
     @GetMapping("/api/node/remove/{name}")
     @ResponseBody
     public ResponseEntity<Void> removeNode(@PathVariable String name) {
