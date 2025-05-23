@@ -38,14 +38,14 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
 
     @Override
     protected void setup() {
-        initialNodeId = nodeRepository.getCurrentId();
-        System.out.println("[FailureAgent] Started at node: " + initialNodeId);
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
-            failedNodeId = (int) args[0]; //Todo: Check
+            failedNodeId = (int) args[0];
             newOwnerId = (int) args[1];
+            initialNodeId = newOwnerId;
+            System.out.println("[FailureAgent] Started at node: " + initialNodeId);
         } else {
-            System.err.println("FailureAgent requires 2 arguments: failedNodeId and newOwnerId.");
+            System.err.println("[FailureAgent] Not started: requires 2 arguments: failedNodeId and newOwnerId.");
             doDelete();
             return;
         }
@@ -100,7 +100,7 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
     @Override
     protected void afterMove() {
         newOwnerId = nodeRepository.getCurrentId();
-        System.out.println("[FailureAgent] " + getLocalName() + " is just arrived to this location: " + newOwnerId+"===============================");
+        System.out.println("[FailureAgent] " + getLocalName() + " is just arrived to this location: " + newOwnerId);
         // Terminate the agent if it has passed all nodes
         if (newOwnerId == initialNodeId) {
             doDelete();
