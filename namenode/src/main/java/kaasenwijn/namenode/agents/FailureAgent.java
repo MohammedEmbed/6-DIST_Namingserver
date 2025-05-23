@@ -53,14 +53,9 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
     }
 
     protected void executeAgent() {
-        // Terminate the agent if it has passed all nodes
-        if (newOwnerId == initialNodeId) {
-            doDelete();
-        } else {
-            // Add agent behaviour
-            Behaviour b = new FailureBehaviour(this);
-            addBehaviour(b);
-        }
+        // Add agent behaviour
+        Behaviour b = new FailureBehaviour(this);
+        addBehaviour(b);
     }
 
     public void migrateToNextNode() {
@@ -96,7 +91,8 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
             @Override
             public String getAddress() {
                 // Structure: Zadig:1099/JADE.Container-1
-                return next.getIp() + ":" + (next.getPort() + 1) + "/JADE.FailureAgent";
+                String resp = next.getIp() + ":" + (next.getPort() + 1) + "/JADE.Main-Container";
+                return resp;
             }
         };
     }
@@ -104,7 +100,12 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
     @Override
     protected void afterMove() {
         newOwnerId = nodeRepository.getCurrentId();
-        System.out.println("[FailureAgent] " + getLocalName() + " is just arrived to this location: " + newOwnerId);
+        System.out.println("[FailureAgent] " + getLocalName() + " is just arrived to this location: " + newOwnerId+"===============================");
+        // Terminate the agent if it has passed all nodes
+        if (newOwnerId == initialNodeId) {
+            doDelete();
+        }
         executeAgent();
     }
 }
+

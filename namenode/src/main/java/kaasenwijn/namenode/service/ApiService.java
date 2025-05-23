@@ -169,7 +169,54 @@ public class ApiService {
             return false;
         }
     }
+    private static final String NAMING_SERVER_URL = "http://localhost:8080"; // Adjust to your actual Naming Server address
 
+    public static boolean acquireFileLock(String fileName, int nodeId) {
+        String path = "/api/lock/acquire";
+        JSONObject body = new JSONObject();
+        body.put("fileName", fileName);
+        body.put("nodeId", nodeId);
+
+        try {
+            int responseCode = sendHttpRequest("POST", path, body.toString());
+            return responseCode == 200;
+        } catch (Exception e) {
+            System.err.println("Failed to acquire lock: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean releaseFileLock(String fileName, int nodeId) {
+        String path = "/api/lock/release";
+        JSONObject body = new JSONObject();
+        body.put("fileName", fileName);
+        body.put("nodeId", nodeId);
+
+        try {
+            int responseCode = sendHttpRequest("DELETE", path, body.toString());
+            return responseCode == 200;
+        } catch (Exception e) {
+            System.err.println("Failed to release lock: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static int sendHttpRequest(String method, String path, String jsonBody) throws Exception {
+        URL url = new URL(NAMING_SERVER_URL + path);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+
+        if (jsonBody != null && !jsonBody.isEmpty()) {
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonBody.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+        }
+
+        return conn.getResponseCode();
+    }
 
 
 

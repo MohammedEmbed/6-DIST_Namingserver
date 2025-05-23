@@ -18,12 +18,13 @@ class FailureBehaviour extends OneShotBehaviour implements Serializable {
 
     FailureBehaviour(Agent a) {
         super(a);
+        action();
     }
 
     public void action() {
         ACLMessage msg = myAgent.receive();
         FailureAgent agent = (FailureAgent) myAgent;
-        if (msg != null) {
+        //   if (msg != null) {
             String logFolderPath = "logs_" + nodeRepository.getName(); //TODO: Is this right?
             File logFolder = new File(logFolderPath);
 
@@ -63,8 +64,8 @@ class FailureBehaviour extends OneShotBehaviour implements Serializable {
             }
 
             agent.migrateToNextNode();
-        } else {
-            block();
-        }
+     //   } else {
+     //       block();
+     //   }
     }
 }

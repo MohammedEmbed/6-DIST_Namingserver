@@ -84,8 +84,6 @@ public class NodeUnicastReceiver extends Thread {
                     case "update_next_id":
                         if (!data.isEmpty()) {
                             int nextId = data.getInt("next_id");
-                            // TODO: REMOVE this is just for testing
-                            initiateFailureAgent(NodeService.getHash(source.getString("name")));
                             nodeRepository.setNext(nextId);
                             System.out.println("[update_next_id] New nextid: " + nextId);
                         }
@@ -94,8 +92,6 @@ public class NodeUnicastReceiver extends Thread {
                     case "update_previous_id":
                         if (!data.isEmpty()) {
                             int previousId = data.getInt("previous_id");
-                            // TODO: REMOVE this is just for testing
-                            initiateFailureAgent(NodeService.getHash(source.getString("name")));
                             nodeRepository.setPrevious(previousId);
                             System.out.println("[update_previous_id] New previousid: " + previousId);
                         }
