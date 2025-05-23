@@ -3,8 +3,11 @@ package kaasenwijn.namingserver.controller;
 import kaasenwijn.namingserver.model.ErrorDto;
 import kaasenwijn.namingserver.model.Neighbours;
 import kaasenwijn.namingserver.model.Node;
+import kaasenwijn.namingserver.model.NodeIp;
 import kaasenwijn.namingserver.service.NameService;
 import kaasenwijn.namingserver.repository.IpRepository;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,4 +85,53 @@ public class NodeController {
         return ResponseEntity.ok().body(data);
     }
 
+    // Get the information of a specific node
+    @GetMapping("/info/{name}")
+    public ResponseEntity<?> GetNodeInfo(@PathVariable String name) {
+        int id = NameService.getHash(name);
+        if (!ipRepo.ipExists(id)) {
+            System.out.println("Node " + id + " not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        NodeIp node = new NodeIp(id, ipRepo.getIp(id));
+        int port = node.port+1;
+        String dest = node.ip+":"+port;
+        JSONObject data = NameService.sendServerGetRequest(dest,"/api/node/info");
+        assert data != null;
+        return ResponseEntity.ok().body(data.toString());
+    }
+
+    // Get all nodes in the network and their information
+    @GetMapping("/info/all")
+    public ResponseEntity<?> GetNodeInfoAll() {
+        JSONArray dataList = new JSONArray();
+        for(String ip: ipRepo.getMap().values()){
+            NodeIp node = new NodeIp(0, ip);
+            int port = node.port+1;
+            String dest = node.ip+":"+port;
+            JSONObject data = NameService.sendServerGetRequest(dest,"/api/node/info");
+            if(data != null){
+                dataList.put(data);
+            }
+        }
+        return ResponseEntity.ok().body(dataList.toString());
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Void> getStatus() {
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/status/{name}")
+    public ResponseEntity<?> GetNodeStatus(@PathVariable String name) {
+        int id = NameService.getHash(name);
+        if (!ipRepo.ipExists(id)) {
+            System.out.println("Node " + id + " not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        NodeIp node = new NodeIp(id, ipRepo.getIp(id));
+        int port = node.port+1;
+        String dest = node.ip+":"+port;
+        Boolean data = NameService.sendServerStatusCheck(dest,"/api/node/status");
+        return ResponseEntity.ok().body("{'status':"+data+"}");
+    }
 }

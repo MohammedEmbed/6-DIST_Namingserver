@@ -1,7 +1,10 @@
 package kaasenwijn.namenode.util;
 
+import jade.wrapper.AgentController;
+import kaasenwijn.namenode.agents.FailureAgent;
 import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
+import kaasenwijn.namenode.service.ApiService;
 import kaasenwijn.namenode.service.NodeService;
 import org.json.JSONObject;
 
@@ -9,88 +12,99 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Failure {
-    private final static NodeRepository nodeRepository = NodeRepository.getInstance();
+    private static final NodeRepository nodeRepository = NodeRepository.getInstance();
+    private static final ApiService apiService = new ApiService();
 
-    public static void healthCheck(){
-        // https://stackoverflow.com/a/29460716
-        try{
-            // Send a message to next neighbour
-            NodeRepository nodeRepo = NodeRepository.getInstance();
-            Neighbor next = nodeRepo.getNext();
-            try{
-                NodeSender.sendUnicastMessage(next.getIp(),next.getPort(),"health-check");
-                System.out.println("[Health-check: previous] Successfully send to: "+ next.getIp() + ":"+ next.getPort());
+    public static void healthCheck() {
+        try {
+            Neighbor next = nodeRepository.getNext();
+            Neighbor prev = nodeRepository.getPrevious();
 
-            }catch (CommunicationException c){
-                System.out.println("[Health-check: next] Detected failure!");
-                System.out.println("Detected broken next node");
+            try {
+                NodeSender.sendUnicastMessage(next.getIp(), next.getPort(), "health-check");
+                System.out.printf("[Health-check: next] Successfully sent to: %s:%d%n", next.getIp(), next.getPort());
+            } catch (CommunicationException c) {
+                System.out.println("[Health-check: next] Detected failure.");
                 handleFailure(next.Id);
             }
 
-            Neighbor prev = nodeRepo.getNext();
-            try{
-                // Send a message to previous neighbour
-                NodeSender.sendUnicastMessage(prev.getIp(),prev.getPort(),"health-check");
-                System.out.println("[Health-check: next] Successfully send to: "+ prev.getIp() + ":" + prev.getPort());
-
-            }catch (CommunicationException c){
-                System.out.println("[Health-check: previous] Detected failure!");
+            try {
+                NodeSender.sendUnicastMessage(prev.getIp(), prev.getPort(), "health-check");
+                System.out.printf("[Health-check: previous] Successfully sent to: %s:%d%n", prev.getIp(), prev.getPort());
+            } catch (CommunicationException c) {
+                System.out.println("[Health-check: previous] Detected failure.");
                 handleFailure(prev.Id);
             }
 
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void handleFailure(int hash){
-        // Request prev and next node parameters of failed node from NS
-        JSONObject nbData = NodeService.getNeighbours(hash);
+    public static void handleFailure(int hash) {
+        JSONObject nbData = NodeService.getNeighbors(hash);
         JSONObject next = nbData.getJSONObject("next");
         JSONObject prev = nbData.getJSONObject("previous");
 
-        // Update previous node, it's next id
         JSONObject dataForPrevious = new JSONObject();
         dataForPrevious.put("next_id", next.getInt("id"));
-        try{
+        try {
             NodeSender.sendUnicastMessage(prev.getString("ip"), prev.getInt("port"), "update_next_id", dataForPrevious);
-
-        }catch (CommunicationException e){
-            System.out.println("Updating neighbour info failed!");
+        } catch (CommunicationException e) {
+            System.out.println("Updating neighbour info failed.");
         }
 
-        // Update next node, it's prev id
         JSONObject dataForNext = new JSONObject();
         dataForNext.put("previous_id", prev.getInt("id"));
-        try{
+        try {
             NodeSender.sendUnicastMessage(next.getString("ip"), next.getInt("port"), "update_previous_id", dataForNext);
-        }catch(CommunicationException e){
-            System.out.println("Updating neighbour info failed!");
+        } catch (CommunicationException e) {
+            System.out.println("Updating neighbour info failed.");
         }
 
-        // Send HTTP DELETE request to nameserver to remove this node
+        apiService.deleteNodeRequestFromHash(hash);
+        releaseLocksForFailedNode(hash);
+        initiateFailureAgent(hash);
+    }
+
+    private static void releaseLocksForFailedNode(int nodeId) {
         String namingServerIp = nodeRepository.getNamingServerIp();
         try {
-            URL url = new URL("http://" + namingServerIp + ":8080/api/node/hash/" + hash);
+            URL url = new URL("http://" + namingServerIp + ":" +
+                    nodeRepository.getNamingServerHTTPPort() + "/api/lock/release_by_node/" + nodeId);
+
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
             conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Content-Type", "application/json");
 
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
-                System.out.println("DELETE request for hash'" +hash  + "' successfully sent to " + namingServerIp);
+                System.out.printf("Released all locks for sunken node %d from Naming Server.%n", nodeId);
             } else {
-                System.err.println("Failed to send DELETE request to " + namingServerIp + " — HTTP " + responseCode);
+                System.err.printf("Failed to release locks for node %d — server responded %d%n", nodeId, responseCode);
             }
 
             conn.disconnect();
-
         } catch (Exception e) {
-            System.err.println("Error DELETE request to " + namingServerIp);
-            e.printStackTrace();
+            System.err.printf("Lock cleanup failed for ghost node %d: %s%n", nodeId, e.getMessage());
         }
     }
 
+    public static void initiateFailureAgent(int hash) {
+        System.out.println("[Failure] Initiating FailureAgent!");
 
+        int newOwnerId = nodeRepository.getCurrentId();
+
+        try {
+            AgentController ac = nodeRepository.getAgentContainer().createNewAgent(
+                    "FailureAgent"+nodeRepository.getName(),
+                    FailureAgent.class.getName(),
+                    new Object[]{hash, newOwnerId}
+            );
+
+            ac.start();
+            System.out.printf("[Failure] Started FailureAgent for failed node %d, new owner %d.%n", hash, newOwnerId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

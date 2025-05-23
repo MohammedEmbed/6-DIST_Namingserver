@@ -1,26 +1,30 @@
 package kaasenwijn.namingserver.controller;
 
-import kaasenwijn.namingserver.model.IpDto;
+import kaasenwijn.namingserver.model.*;
 import kaasenwijn.namingserver.repository.IpRepository;
 import kaasenwijn.namingserver.service.NameService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/file")
+
 @RestController
+@RequestMapping("/api/file")
 public class FileController {
     @Autowired
     private NameService nameService;
-
     private final IpRepository ipRepo = IpRepository.getInstance();
 
-    // TODO: Lab5 add file functions...
-    @GetMapping("/{filePath}")
-    public synchronized IpDto getFileLocation(@PathVariable String filePath) {
-        Integer id = nameService.getNodeId(filePath);
-        return new IpDto(ipRepo.getIp(id));
+    @GetMapping("/location/{nodeHash}/{fileHash}")
+    public ResponseEntity<?> getFileReplicationLocation(@PathVariable int nodeHash, @PathVariable int fileHash) {
+        int id = NameService.getFileOwnerId(fileHash, nodeHash);
+
+        if (!ipRepo.ipExists(id)) {
+            System.out.println("Node " + id + " not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Node doesn't exists"));
+        }
+        String ip = ipRepo.getIp(id);
+        return ResponseEntity.ok().body(new NodeIp(nodeHash,ip));
     }
 }

@@ -1,5 +1,6 @@
 package kaasenwijn.namenode.repository;
 
+import jade.wrapper.AgentContainer;
 import kaasenwijn.namenode.model.NodeStructure;
 import kaasenwijn.namenode.model.Neighbor;
 
@@ -10,18 +11,22 @@ public class NodeRepository {
 
     private NodeRepository() {
         nodeStructure = new NodeStructure();
-        nodeStructure.namingServerIp = System.getenv("NS_IP");
+        nodeStructure.namingServerIp = System.getProperty("NS_IP");
+        nodeStructure.namingServerPort = Integer.parseInt(System.getProperty("NS_PORT"));
+
     }
 
     public static synchronized NodeRepository getInstance() {
         if (instance == null) {
             instance = new NodeRepository();
-
         }
 
         return instance;
     }
 
+    public NodeStructure getNodeStructure(){
+        return nodeStructure;
+    }
     public int getCurrentId() {
         return nodeStructure.currentId;
     }
@@ -82,4 +87,22 @@ public class NodeRepository {
     public String getNamingServerIp() {
         return nodeStructure.namingServerIp;
     }
+
+    public int getNamingServerPort(){
+        return nodeStructure.namingServerPort;
+    }
+    public int getNamingServerHTTPPort(){
+        return nodeStructure.namingServerHTTPPort;
+    }
+    public void setNamingServerHTTPPort(int port){
+        nodeStructure.namingServerHTTPPort = port;
+    }
+
+    public void setAgentContainer(AgentContainer container){
+        nodeStructure.agentContainer = container;
+    }
+    public AgentContainer getAgentContainer(){
+        return nodeStructure.agentContainer;
+    }
+
 }

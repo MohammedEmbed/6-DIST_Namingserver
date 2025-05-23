@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+namenode/local_files_Arvo
+namenode/local_files_Daan
+namenode/local_files_Warre
+namenode/replicated_files_Arvo
+namenode/replicated_files_Daan
+namenode/replicated_files_Warre
+namenode/logs_Arvo
+namenode/logs_Daan
+namenode/logs_Warre
+namenode/APDescription.txt
+namenode/MTPs-Main-Container.txt
