@@ -1,11 +1,8 @@
 package kaasenwijn.namenode.agents;
 
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.Location;
-import jade.core.PlatformID;
 import jade.core.behaviours.Behaviour;
-import jade.wrapper.PlatformController;
 import kaasenwijn.namenode.model.Neighbor;
 import kaasenwijn.namenode.repository.NodeRepository;
 
@@ -45,11 +42,10 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
         System.out.println("[FailureAgent] Started at node: " + initialNodeId);
         Object[] args = getArguments();
         if (args != null && args.length == 2) {
-            failedNodeId = (int) args[0];
+            failedNodeId = (int) args[0]; //Todo: Check
             newOwnerId = (int) args[1];
-            //creatorNodeId = (String) args[2];
         } else {
-            System.err.println("FailureAgent requires 3 arguments: failedNodeId, newOwnerId, creatorNodeId.");
+            System.err.println("FailureAgent requires 2 arguments: failedNodeId and newOwnerId.");
             doDelete();
             return;
         }
@@ -65,7 +61,6 @@ public class FailureAgent extends Agent implements Runnable, Serializable {
     public void migrateToNextNode() {
         Neighbor next = NodeRepository.getInstance().getNext();
         Location nextLocation = getNextLocation(next);
-        nextLocation.getAddress();
         System.out.println("[FailureAgent] Done here. Migrating to next node: " + next.Id);
         doMove(nextLocation);
     }
